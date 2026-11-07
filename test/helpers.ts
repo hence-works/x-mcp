@@ -39,8 +39,11 @@ export function mockFetch(handler: (req: RecordedRequest) => MockReply | Promise
     const headers: Record<string, string> = {};
     for (const [k, v] of Object.entries((init.headers ?? {}) as Record<string, string>)) headers[k.toLowerCase()] = v;
     let body: unknown;
-    if (typeof init.body === 'string') body = JSON.parse(init.body);
-    else if (init.body instanceof FormData) body = init.body;
+    if (typeof init.body === 'string') {
+      body = headers['content-type']?.startsWith('application/x-www-form-urlencoded')
+        ? Object.fromEntries(new URLSearchParams(init.body))
+        : JSON.parse(init.body);
+    } else if (init.body instanceof FormData) body = init.body;
     const req: RecordedRequest = { method: init.method ?? 'GET', url: new URL(input), headers, body, rawBody: init.body };
     requests.push(req);
     const reply = await handler(req);
@@ -71,5 +74,18 @@ export function testClient(fetch: FetchLike, env: NodeJS.ProcessEnv = TEST_SECRE
     },
     now: () => 1_800_000_000_000,
     oauth1Nonce: () => 'nonce',
+  });
+}
+
+/** A currently free loopback TCP port (bind to 0, read the port, release it). */
+export async function freeLoopbackPort(): Promise<number> {
+  const { createServer } = await import('node:net');
+  return new Promise((resolve, reject) => {
+    const srv = createServer();
+    srv.once('error', reject);
+    srv.listen(0, '127.0.0.1', () => {
+      const { port } = srv.address() as { port: number };
+      srv.close(() => resolve(port));
+    });
   });
 }

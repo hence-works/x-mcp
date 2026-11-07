@@ -26,8 +26,39 @@
       "name": "X_FINALIZE_MEDIA_UPLOAD",
       "operationId": "finalizeMediaUpload",
       "reason": "Completes the chunked upload lifecycle that Composio exposes only partially; not counted as Composio coverage."
+    },
+    {
+      "name": "X_AUTH_CONNECT",
+      "operationId": null,
+      "reason": "Starts OAuth 2.0 Authorization Code with PKCE (S256) for an X account; returns the authorize URL only."
+    },
+    {
+      "name": "X_AUTH_STATUS",
+      "operationId": null,
+      "reason": "Lists connected accounts, granted scopes and expiry without exposing tokens."
+    },
+    {
+      "name": "X_AUTH_DISCONNECT",
+      "operationId": null,
+      "reason": "Revokes (POST /2/oauth2/revoke) and deletes the active connected account."
     }
   ],
+  "oauth": {
+    "oauth2_user_capable": 77,
+    "app_only": [
+      "TWITTER_CREATE_COMPLIANCE_JOB",
+      "TWITTER_GET_COMPLIANCE_JOB",
+      "TWITTER_GET_COMPLIANCE_JOBS",
+      "TWITTER_GET_POST_USAGE",
+      "TWITTER_SEARCH_FULL_ARCHIVE_COUNTS",
+      "TWITTER_STREAM_POST_LABELS"
+    ],
+    "unauthenticated": [
+      "TWITTER_GET_OPENAPI_SPEC"
+    ],
+    "oauth1_user_only": [],
+    "note": "Every user-context tool accepts OAuth 2.0 user tokens, so no 3-legged OAuth 1.0a authorization flow is required; OAuth 1.0a remains available via environment credentials. App-only tools require X_BEARER_TOKEN and never receive user tokens."
+  },
   "tools": [
     {
       "name": "TWITTER_ADD_LIST_MEMBER",

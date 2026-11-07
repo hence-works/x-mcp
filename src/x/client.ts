@@ -33,8 +33,16 @@ export interface XResponse<T = unknown> {
 
 export type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 
+/** Connected-account credentials (implemented by the AccountManager). */
+export interface ManagedCredentialSource {
+  activeCredential(): Promise<{ token: string; userId: string; scopes: readonly string[] } | undefined>;
+  refresh(userId: string): Promise<{ accessToken: string }>;
+}
+
 export interface XClientDeps {
   fetch?: FetchLike;
+  /** OAuth 2.0 connected accounts; used before X_OAUTH2_ACCESS_TOKEN when an account is active. */
+  accounts?: ManagedCredentialSource;
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
   /** Deterministic OAuth 1.0a nonce/timestamp for tests. */
@@ -146,11 +154,11 @@ export class XClient {
   }
 
   /** Picks the credential to use, or throws a configuration error naming the env vars to set. */
-  selectAuth(accepted: readonly AuthKind[]): AuthKind | undefined {
+  selectAuth(accepted: readonly AuthKind[], managedAccount = false): AuthKind | undefined {
     if (accepted.length === 0) return undefined;
     const creds = this.config.credentials;
     const available: Record<AuthKind, boolean> = {
-      oauth2_user: Boolean(creds.oauth2UserToken),
+      oauth2_user: managedAccount || Boolean(creds.oauth2UserToken),
       oauth1_user: Boolean(creds.oauth1),
       app_bearer: Boolean(creds.bearerToken),
     };
@@ -159,7 +167,8 @@ export class XClient {
       const needs = AUTH_PREFERENCE.filter((k) => accepted.includes(k))
         .map((k) => `${k} (${AUTH_ENV[k]})`)
         .join(' or ');
-      throw new XApiError('auth_not_configured', `This tool requires credentials for ${needs}; none are configured.`);
+      const connect = accepted.includes('oauth2_user') && this.deps.accounts ? ' Or connect an account with X_AUTH_CONNECT.' : '';
+      throw new XApiError('auth_not_configured', `This tool requires credentials for ${needs}; none are configured.${connect}`);
     }
     return chosen;
   }
@@ -173,13 +182,19 @@ export class XClient {
     return url.toString();
   }
 
-  private authHeader(kind: AuthKind | undefined, method: string, url: string): string | undefined {
+  /** The connected account whose token a request accepting `accepted` would use, if any. */
+  async managedCredential(accepted: readonly AuthKind[]) {
+    if (!accepted.includes('oauth2_user') || !this.deps.accounts) return undefined;
+    return this.deps.accounts.activeCredential();
+  }
+
+  private authHeader(kind: AuthKind | undefined, method: string, url: string, managedToken?: string): string | undefined {
     const creds = this.config.credentials;
     switch (kind) {
       case undefined:
         return undefined;
       case 'oauth2_user':
-        return `Bearer ${creds.oauth2UserToken}`;
+        return `Bearer ${managedToken ?? creds.oauth2UserToken}`;
       case 'app_bearer':
         return `Bearer ${creds.bearerToken}`;
       case 'oauth1_user':
@@ -195,12 +210,15 @@ export class XClient {
 
   /** Sends one request (plus bounded retries for idempotent requests) and returns the parsed body. */
   async request<T = unknown>(req: XRequest): Promise<XResponse<T>> {
-    const auth = this.selectAuth(req.auth);
+    let managed = await this.managedCredential(req.auth);
+    const auth = this.selectAuth(req.auth, managed !== undefined);
+    if (auth !== 'oauth2_user') managed = undefined;
     const url = this.buildUrl(req.path, req.query);
     const idempotent = req.idempotent ?? req.method === 'GET';
     const maxAttempts = idempotent ? this.config.maxRetries + 1 : 1;
+    let refreshed = false;
     for (let attempt = 1; ; attempt++) {
-      const res = await this.send(req, url, auth);
+      const res = await this.send(req, url, auth, managed?.token);
       if (res.kind === 'network') {
         if (attempt < maxAttempts) {
           await this.sleep(this.backoff(attempt));
@@ -219,6 +237,14 @@ export class XClient {
       const body = await readBody(response);
       if (response.ok) return { status: response.status, data: body as T, rateLimit, auth };
       const error = errorFromResponse(response.status, body, rateLimit, this.now());
+      // A 401 means X rejected the token before acting, so one retry after a refresh is safe even for writes.
+      if (response.status === 401 && managed && !refreshed && this.deps.accounts) {
+        refreshed = true;
+        attempt--;
+        const next = await this.deps.accounts.refresh(managed.userId);
+        managed = { ...managed, token: next.accessToken };
+        continue;
+      }
       if (attempt < maxAttempts && RETRYABLE_STATUS.has(response.status)) {
         const wait =
           response.status === 429
@@ -235,10 +261,11 @@ export class XClient {
 
   /** Opens a streaming GET and returns the live response; the caller must cancel/abort it. */
   async openStream(req: XRequest & { signal: AbortSignal }): Promise<{ response: Response; auth?: AuthKind }> {
-    const auth = this.selectAuth(req.auth);
+    const managed = await this.managedCredential(req.auth);
+    const auth = this.selectAuth(req.auth, managed !== undefined);
     const url = this.buildUrl(req.path, req.query);
     const headers: Record<string, string> = { 'user-agent': 'x-mcp/0.1.0' };
-    const authorization = this.authHeader(auth, req.method, url);
+    const authorization = this.authHeader(auth, req.method, url, auth === 'oauth2_user' ? managed?.token : undefined);
     if (authorization) headers.authorization = authorization;
     let response: Response;
     try {
@@ -255,6 +282,9 @@ export class XClient {
 
   /** Authenticated user's id, resolved once per process via GET /2/users/me. */
   async getMeId(): Promise<string> {
+    // A connected account is bound to its verified id: no extra billable lookup needed.
+    const managed = this.deps.accounts ? await this.deps.accounts.activeCredential() : undefined;
+    if (managed) return managed.userId;
     if (!this.meId) {
       this.meId = this.request<{ data?: { id?: unknown } }>({
         method: 'GET',
@@ -289,9 +319,10 @@ export class XClient {
     req: XRequest,
     url: string,
     auth: AuthKind | undefined,
+    managedToken?: string,
   ): Promise<{ kind: 'ok'; response: Response } | { kind: 'network'; error: XApiError }> {
     const headers: Record<string, string> = { 'user-agent': 'x-mcp/0.1.0', accept: 'application/json' };
-    const authorization = this.authHeader(auth, req.method, url);
+    const authorization = this.authHeader(auth, req.method, url, managedToken);
     if (authorization) headers.authorization = authorization;
     let body: string | FormData | undefined;
     if (req.body?.kind === 'json') {

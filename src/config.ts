@@ -28,6 +28,32 @@ export interface ServerConfig {
   requestTimeoutMs: number;
   /** Upper bound for polling media processing status in TWITTER_UPLOAD_LARGE_MEDIA. */
   mediaProcessingTimeoutMs: number;
+  /** Browser-based OAuth 2.0 user authorization (Authorization Code with PKCE). Disabled when unset. */
+  oauth?: OAuthConfig;
+  /** Where connected-account tokens are kept. */
+  tokenStore: TokenStoreConfig;
+  /** Operator-pinned connected account (X user id). Tool arguments never select an account. */
+  accountId?: string;
+}
+
+export interface OAuthConfig {
+  clientId: string;
+  /** Present for confidential clients (Web App, Automated App or bot); sent with HTTP Basic auth. */
+  clientSecret?: string;
+  /** Exactly as registered in the X developer app. A loopback http URI runs the local callback listener. */
+  redirectUri: string;
+  authorizeUrl: string;
+  tokenUrl: string;
+  revokeUrl: string;
+  /** Lifetime of an authorization request (state, PKCE verifier and callback listener). */
+  callbackTimeoutMs: number;
+}
+
+export interface TokenStoreConfig {
+  /** Directory holding one encrypted file per connected account. */
+  dir: string;
+  /** 32-byte AES-256-GCM key from X_MCP_TOKEN_KEY. Without it, connections last for the process only. */
+  key?: Buffer;
 }
 
 export class ConfigError extends Error {
@@ -71,6 +97,36 @@ export function validateBaseUrl(raw: string): string {
   return url.origin + url.pathname.replace(/\/+$/, '');
 }
 
+/** Loopback redirect URIs get a local listener; anything else must be https. */
+export function validateRedirectUri(raw: string): string {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new ConfigError('X_OAUTH2_REDIRECT_URI is not a valid URL');
+  }
+  const loopback = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '[::1]';
+  if (url.protocol === 'http:' && !loopback) throw new ConfigError('X_OAUTH2_REDIRECT_URI must use https unless it is a loopback address');
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new ConfigError('X_OAUTH2_REDIRECT_URI must be http(s)');
+  if (loopback && !url.port) throw new ConfigError('A loopback X_OAUTH2_REDIRECT_URI needs an explicit port');
+  if (url.search || url.hash || url.username || url.password) {
+    throw new ConfigError('X_OAUTH2_REDIRECT_URI must not contain a query, fragment or credentials');
+  }
+  return url.toString();
+}
+
+function tokenKey(raw: string | undefined): Buffer | undefined {
+  if (raw === undefined) return undefined;
+  const key = /^[0-9a-fA-F]{64}$/.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
+  if (key.length !== 32) throw new ConfigError('X_MCP_TOKEN_KEY must be 32 bytes, as 64 hex characters or base64');
+  return key;
+}
+
+function defaultTokenDir(env: NodeJS.ProcessEnv): string {
+  const base = nonEmpty(env.XDG_CONFIG_HOME) ?? `${nonEmpty(env.HOME) ?? '.'}/.config`;
+  return `${base}/x-mcp/accounts`;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const oauth1Parts = {
     consumerKey: nonEmpty(env.X_API_KEY),
@@ -89,9 +145,29 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     bearerToken: nonEmpty(env.X_BEARER_TOKEN),
     oauth1: oauth1Set === 4 ? (oauth1Parts as OAuth1Credentials) : undefined,
   };
+  const baseUrl = validateBaseUrl(nonEmpty(env.X_API_BASE_URL) ?? DEFAULT_BASE_URL);
+  const clientId = nonEmpty(env.X_OAUTH2_CLIENT_ID);
+  const clientSecret = nonEmpty(env.X_OAUTH2_CLIENT_SECRET);
+  if (clientSecret && !clientId) throw new ConfigError('X_OAUTH2_CLIENT_SECRET requires X_OAUTH2_CLIENT_ID');
+  const oauth: OAuthConfig | undefined = clientId
+    ? {
+        clientId,
+        clientSecret,
+        redirectUri: validateRedirectUri(nonEmpty(env.X_OAUTH2_REDIRECT_URI) ?? 'http://127.0.0.1:8723/callback'),
+        authorizeUrl: 'https://x.com/i/oauth2/authorize',
+        tokenUrl: `${baseUrl}/2/oauth2/token`,
+        revokeUrl: `${baseUrl}/2/oauth2/revoke`,
+        callbackTimeoutMs: intFromEnv(env, 'X_OAUTH2_CALLBACK_TIMEOUT_MS', 300_000, 30_000, 900_000),
+      }
+    : undefined;
+  const accountId = nonEmpty(env.X_MCP_ACCOUNT_ID);
+  if (accountId !== undefined && !/^\d{1,19}$/.test(accountId)) throw new ConfigError('X_MCP_ACCOUNT_ID must be a numeric X user id');
   return {
-    baseUrl: validateBaseUrl(nonEmpty(env.X_API_BASE_URL) ?? DEFAULT_BASE_URL),
+    baseUrl,
     credentials,
+    oauth,
+    tokenStore: { dir: nonEmpty(env.X_MCP_TOKEN_DIR) ?? defaultTokenDir(env), key: tokenKey(nonEmpty(env.X_MCP_TOKEN_KEY)) },
+    accountId,
     mediaRoot: nonEmpty(env.X_MCP_MEDIA_ROOT),
     maxMediaBytes: intFromEnv(env, 'X_MCP_MAX_MEDIA_BYTES', 512 * 1024 * 1024, 1, 17_179_869_184),
     maxRetries: intFromEnv(env, 'X_MCP_MAX_RETRIES', 2, 0, 5),
@@ -102,8 +178,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
 }
 
 /** Every configured secret value, used to scrub diagnostics and error text. */
-export function secretValues(credentials: XCredentials): string[] {
-  const values = [credentials.oauth2UserToken, credentials.bearerToken];
+export function secretValues(credentials: XCredentials, oauth?: OAuthConfig): string[] {
+  const values = [credentials.oauth2UserToken, credentials.bearerToken, oauth?.clientSecret];
   if (credentials.oauth1) values.push(...Object.values(credentials.oauth1));
   return values.filter((v): v is string => typeof v === 'string' && v.length > 0);
 }

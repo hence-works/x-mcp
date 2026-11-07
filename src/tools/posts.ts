@@ -343,6 +343,7 @@ export const postTools: ToolDefinition[] = [
     method: 'POST',
     path: '/2/users/{id}/likes',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), tweet_id: xId('Post id to like') },
   }),
   httpTool({
@@ -354,6 +355,7 @@ export const postTools: ToolDefinition[] = [
     method: 'DELETE',
     path: '/2/users/{id}/likes/{tweet_id}',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), tweet_id: xId('Post id to unlike') },
   }),
   httpTool({

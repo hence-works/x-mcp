@@ -18,7 +18,13 @@ export type XErrorKind =
   /** X answered 2xx with an unexpected body. */
   | 'unexpected_response'
   /** Media processing finished in a failed state or did not finish in time. */
-  | 'media_processing';
+  | 'media_processing'
+  /** The OAuth authorization or token endpoint rejected a request. */
+  | 'oauth_error'
+  /** The connected account's grant is expired, revoked or invalid: connect it again. */
+  | 'reauthorization_required'
+  /** The connected account was not granted a scope this tool needs. */
+  | 'missing_scopes';
 
 export interface XErrorDetails {
   status?: number;

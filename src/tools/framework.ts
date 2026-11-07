@@ -3,14 +3,18 @@ import type { ServerConfig } from '../config.js';
 import type { AuthKind, HttpMethod, XClient, XResponse } from '../x/client.js';
 import { invalidInput, type RateLimitInfo } from '../x/errors.js';
 import type { MediaReader } from '../media.js';
+import type { CallbackListener } from '../auth/callback.js';
+import type { AccountManager } from '../auth/manager.js';
 
-export type ToolScope = 'posts-users' | 'lists-bookmarks-relationships' | 'direct-messages' | 'spaces-media' | 'platform';
+export type ToolScope = 'posts-users' | 'lists-bookmarks-relationships' | 'direct-messages' | 'spaces-media' | 'platform' | 'auth';
 
 export interface ToolContext {
   client: XClient;
   config: ServerConfig;
   media: MediaReader;
   signal?: AbortSignal;
+  accounts?: AccountManager;
+  callback?: CallbackListener;
 }
 
 /** Structured success payload returned as `structuredContent`. */
@@ -19,6 +23,8 @@ export interface ToolSuccess {
   data: unknown;
   rate_limit?: RateLimitInfo;
   pagination?: { next_token?: string; previous_token?: string };
+  /** Auth type the X request used (oauth2_user, oauth1_user or app_bearer). */
+  auth?: string;
   [key: string]: unknown;
 }
 
@@ -40,6 +46,11 @@ export interface ToolDefinition {
   operationIds: readonly string[];
   /** Auth types accepted by the primary X operation (official spec security). */
   auth: readonly AuthKind[];
+  /**
+   * Input naming the acting user, which X requires to be the authenticated user. With a connected
+   * account, any other value is rejected locally.
+   */
+  actingUserParam?: string;
   inputSchema: z.ZodObject<z.ZodRawShape>;
   annotations: ToolAnnotationsLite;
   run(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolSuccess>;
@@ -97,6 +108,8 @@ export interface HttpToolSpec<S extends z.ZodRawShape> {
   destructive?: boolean;
   /** Counted toward Composio baseline coverage (default true). */
   composio?: boolean;
+  /** See ToolDefinition.actingUserParam; defaults to the first `meParams` entry. */
+  actingUserParam?: keyof S & string;
 }
 
 function setPath(target: Record<string, unknown>, dotted: string, value: unknown): void {
@@ -138,6 +151,7 @@ export function success(res: XResponse, extra: Record<string, unknown> = {}): To
   const pagination = paginationOf(res.data);
   if (pagination) out.pagination = pagination;
   if (res.rateLimit) out.rate_limit = res.rateLimit;
+  if (res.auth) out.auth = res.auth;
   return out;
 }
 
@@ -207,6 +221,7 @@ export function httpTool<S extends z.ZodRawShape>(spec: HttpToolSpec<S>): ToolDe
     composio: spec.composio ?? true,
     operationIds: [spec.operationId],
     auth: spec.auth,
+    actingUserParam: spec.actingUserParam ?? (spec.meParams?.[0] && spec.meParams[0] in spec.input ? spec.meParams[0] : undefined),
     inputSchema: schema as unknown as z.ZodObject<z.ZodRawShape>,
     annotations: annotationsFor(spec.method, spec.destructive),
     async run(args, ctx) {
@@ -228,6 +243,7 @@ export interface CustomToolSpec<S extends z.ZodRawShape> {
   input: S;
   annotations: ToolAnnotationsLite;
   composio?: boolean;
+  actingUserParam?: keyof S & string;
   run(args: z.infer<z.ZodObject<S>>, ctx: ToolContext): Promise<ToolSuccess>;
 }
 
@@ -241,6 +257,7 @@ export function customTool<S extends z.ZodRawShape>(spec: CustomToolSpec<S>): To
     composio: spec.composio ?? true,
     operationIds: spec.operationIds,
     auth: spec.auth,
+    actingUserParam: spec.actingUserParam,
     inputSchema: z.strictObject(spec.input) as unknown as z.ZodObject<z.ZodRawShape>,
     annotations: spec.annotations,
     run: (args, ctx) => spec.run(args as z.infer<z.ZodObject<S>>, ctx),

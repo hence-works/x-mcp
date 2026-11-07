@@ -1,3 +1,4 @@
+import type { AccountManager } from '../../src/auth/manager.js';
 import type { MockReply } from '../helpers.js';
 
 export type ExpectedAuth = 'oauth2_user' | 'oauth1_user' | 'app_bearer' | 'none';
@@ -27,6 +28,8 @@ export interface ContractCase {
   /** Replies for `calls`, in order. Defaults to a generic JSON body per call. */
   replies?: MockReply[];
   env?: NodeJS.ProcessEnv;
+  /** Runs before the call, e.g. to seed a connected account. */
+  setup?: (h: { accounts: AccountManager }) => Promise<void>;
   /** Assertion on structuredContent beyond the default `data` echo check. */
   verify?: (structured: Record<string, unknown>) => void;
 }

@@ -124,19 +124,21 @@ export const platformTools: ToolDefinition[] = [
       const timer = setTimeout(() => controller.abort(), (args.timeout_seconds ?? 10) * 1000);
       const events: unknown[] = [];
       let stopped: 'max_events' | 'timeout' | 'stream_closed' = 'stream_closed';
+      let authUsed: string | undefined;
       try {
         const query: Record<string, string | undefined> = {
           backfill_minutes: args.backfill_minutes?.toString(),
           start_time: args.start_time,
           end_time: args.end_time,
         };
-        const { response } = await ctx.client.openStream({
+        const { response, auth } = await ctx.client.openStream({
           method: 'GET',
           path: '/2/tweets/label/stream',
           query,
           auth: APP_ONLY,
           signal: controller.signal,
         });
+        authUsed = auth;
         if (!response.body) throw new XApiError('unexpected_response', 'Stream response had no body');
         const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
         let buffer = '';
@@ -175,7 +177,7 @@ export const platformTools: ToolDefinition[] = [
         clearTimeout(timer);
         ctx.signal?.removeEventListener('abort', onAbort);
       }
-      return { data: { events }, event_count: events.length, stopped };
+      return { data: { events }, event_count: events.length, stopped, ...(authUsed ? { auth: authUsed } : {}) };
     },
   }),
   httpTool({

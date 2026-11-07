@@ -19,6 +19,7 @@ describe('X endpoint contracts (mocked HTTP, called through MCP)', () => {
       const all: MockReply[] = c.me ? [{ body: { data: { id: c.me, name: 'Me', username: 'me' } } }, ...replies] : replies;
       const h = await connectHarness(queued(all), { env: c.env });
       try {
+        await c.setup?.(h);
         const result = await h.mcp.callTool({ name: c.tool, arguments: c.args });
         expect(result.isError, JSON.stringify(result.content)).toBeFalsy();
         const reqs = [...h.requests];
@@ -47,6 +48,8 @@ describe('X endpoint contracts (mocked HTTP, called through MCP)', () => {
           expect(authOf(req.headers.authorization)).toBe(exp.auth ?? 'oauth2_user');
         });
         const structured = result.structuredContent as Record<string, unknown>;
+        const lastAuth = c.calls.length ? (c.calls[c.calls.length - 1]!.auth ?? 'oauth2_user') : undefined;
+        if (lastAuth && lastAuth !== 'none' && !c.tool.startsWith('X_AUTH_')) expect(structured.auth).toBe(lastAuth);
         if (c.verify) c.verify(structured);
         else expect(structured.data).toEqual(replies[replies.length - 1]!.body);
       } finally {

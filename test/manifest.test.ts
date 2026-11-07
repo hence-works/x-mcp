@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import { TOOL_OAUTH2_SCOPES } from '../src/auth/tool-scopes.js';
 import { allTools } from '../src/tools/index.js';
 import { contractCases } from './contracts/index.js';
 
@@ -14,13 +15,13 @@ interface ManifestParam {
 interface ManifestTool {
   name: string;
   scope: string;
-  endpoints: { operationId: string; method: string; path: string; auth: string[] }[];
+  endpoints: { operationId: string; method: string; path: string; auth: string[]; oauth2_scopes: string[] }[];
   params: ManifestParam[];
 }
 const manifest = JSON.parse(readFileSync(new URL('../coverage/manifest.json', import.meta.url), 'utf8')) as {
   baseline: { tool_count: number };
   tools: ManifestTool[];
-  extra_tools: { name: string; operationId: string }[];
+  extra_tools: { name: string; operationId: string | null }[];
 };
 const byName = new Map(manifest.tools.map((t) => [t.name, t]));
 const tools = allTools();
@@ -36,6 +37,20 @@ describe('coverage manifest conformance', () => {
   it('has the expected baseline size and unique tool names', () => {
     expect(manifest.tools).toHaveLength(manifest.baseline.tool_count);
     expect(new Set(tools.map((t) => t.name)).size).toBe(tools.length);
+  });
+
+  it('maps OAuth 2.0 scopes per tool exactly as the manifest (X spec security) states', () => {
+    const expected: Record<string, string[]> = { X_FINALIZE_MEDIA_UPLOAD: ['media.write'] };
+    for (const t of manifest.tools) {
+      if (t.endpoints.every((e) => e.auth.includes('oauth2_user'))) {
+        expected[t.name] = [...new Set(t.endpoints.flatMap((e) => e.oauth2_scopes))].sort();
+      }
+    }
+    expect(Object.fromEntries(Object.entries(TOOL_OAUTH2_SCOPES).map(([k, v]) => [k, [...v]]))).toEqual(expected);
+    for (const tool of tools) {
+      if (tool.scope === 'auth') continue;
+      expect(tool.auth.includes('oauth2_user'), tool.name).toBe(tool.name in TOOL_OAUTH2_SCOPES);
+    }
   });
 
   it('registers every Composio baseline tool, and only declared extras beyond it', () => {
@@ -54,7 +69,7 @@ describe('coverage manifest conformance', () => {
       it('is declared in the manifest with matching X operations', () => {
         if (!tool.composio) {
           expect(extra, 'non-Composio tools must be listed under extra_tools').toBeDefined();
-          expect(tool.operationIds).toEqual([extra!.operationId]);
+          expect(tool.operationIds).toEqual(extra!.operationId ? [extra!.operationId] : []);
           return;
         }
         expect(entry, 'missing from coverage/manifest.json').toBeDefined();

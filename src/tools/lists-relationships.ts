@@ -151,6 +151,7 @@ export const listTools: ToolDefinition[] = [
     method: 'POST',
     path: '/2/users/{id}/followed_lists',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), list_id: listId('List id to follow') },
   }),
   httpTool({
@@ -162,6 +163,7 @@ export const listTools: ToolDefinition[] = [
     method: 'DELETE',
     path: '/2/users/{id}/followed_lists/{list_id}',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), list_id: listId('List id to unfollow') },
   }),
   httpTool({
@@ -173,6 +175,7 @@ export const listTools: ToolDefinition[] = [
     method: 'POST',
     path: '/2/users/{id}/pinned_lists',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), list_id: listId('List id to pin') },
   }),
   httpTool({
@@ -229,6 +232,7 @@ export const listTools: ToolDefinition[] = [
     method: 'GET',
     path: '/2/users/{id}/pinned_lists',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), ...listLookupFields },
   }),
 ];
@@ -265,6 +269,7 @@ export const bookmarkTools: ToolDefinition[] = [
     method: 'POST',
     path: '/2/users/{id}/bookmarks',
     auth: OAUTH2_ONLY,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), tweet_id: xId('Post id to bookmark') },
   }),
   httpTool({
@@ -361,6 +366,7 @@ export const relationshipTools: ToolDefinition[] = [
     method: 'GET',
     path: '/2/users/{id}/muting',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), ...userPage(1000) },
   }),
   httpTool({
@@ -372,6 +378,7 @@ export const relationshipTools: ToolDefinition[] = [
     method: 'GET',
     path: '/2/users/{id}/blocking',
     auth: USER_CONTEXT,
+    actingUserParam: 'id',
     input: { id: xId('Authenticated user id'), ...userPage(1000) },
   }),
 ];

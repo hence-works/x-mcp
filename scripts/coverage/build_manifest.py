@@ -323,6 +323,14 @@ def main():
         print('\n'.join(errors), file=sys.stderr)
         sys.exit(1)
 
+    by_auth = lambda pred: sorted(t['name'] for t in tools if pred(t['endpoints']))
+    oauth_summary = {
+        'oauth2_user_capable': len(by_auth(lambda eps: all('oauth2_user' in e['auth'] for e in eps))),
+        'app_only': by_auth(lambda eps: eps[0]['auth'] == ['app_bearer']),
+        'unauthenticated': by_auth(lambda eps: eps[0]['auth'] == []),
+        'oauth1_user_only': by_auth(lambda eps: any(e['auth'] == ['oauth1_user'] for e in eps)),
+        'note': 'Every user-context tool accepts OAuth 2.0 user tokens, so no 3-legged OAuth 1.0a authorization flow is required; OAuth 1.0a remains available via environment credentials. App-only tools require X_BEARER_TOKEN and never receive user tokens.',
+    }
     manifest = {
         'schema_version': 1,
         'baseline': {'provider': 'composio', 'toolkit': comp['toolkit'], 'version': comp['version'],
@@ -331,8 +339,17 @@ def main():
                   'source': 'https://api.x.com/2/openapi.json',
                   'rate_limits_source': 'https://docs.x.com/x-api/fundamentals/rate-limits.md'},
         'global_discrepancies': GLOBAL_DISCREPANCIES,
-        'extra_tools': [{'name': 'X_FINALIZE_MEDIA_UPLOAD', 'operationId': 'finalizeMediaUpload',
-                         'reason': 'Completes the chunked upload lifecycle that Composio exposes only partially; not counted as Composio coverage.'}],
+        'extra_tools': [
+            {'name': 'X_FINALIZE_MEDIA_UPLOAD', 'operationId': 'finalizeMediaUpload',
+             'reason': 'Completes the chunked upload lifecycle that Composio exposes only partially; not counted as Composio coverage.'},
+            {'name': 'X_AUTH_CONNECT', 'operationId': None,
+             'reason': 'Starts OAuth 2.0 Authorization Code with PKCE (S256) for an X account; returns the authorize URL only.'},
+            {'name': 'X_AUTH_STATUS', 'operationId': None,
+             'reason': 'Lists connected accounts, granted scopes and expiry without exposing tokens.'},
+            {'name': 'X_AUTH_DISCONNECT', 'operationId': None,
+             'reason': 'Revokes (POST /2/oauth2/revoke) and deletes the active connected account.'},
+        ],
+        'oauth': oauth_summary,
         'tools': sorted(tools, key=lambda x: x['name']),
     }
     with open(a.out, 'w') as f:
