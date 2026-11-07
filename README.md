@@ -206,6 +206,10 @@ so they make no real posts, messages or paid API calls:
   auto negotiation and the legacy `initialize` handshake. It also runs the `x-mcp auth login`, `status` and `logout`
   CLI end to end.
 
+CI (`.github/workflows/ci.yml`) runs `npm ci` and `npm run check` on Node 20, 22 and 24 for pull requests and for
+pushes to `main` and the integration branch. It has a read-only token, no secrets, no live X calls and no deployment,
+and its actions are pinned to commit SHAs.
+
 Manual protocol check with the official Inspector (lists tools only, no X calls):
 
 ```sh
