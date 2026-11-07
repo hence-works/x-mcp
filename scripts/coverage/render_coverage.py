@@ -20,9 +20,17 @@ out.append('## Resolved discrepancies\n')
 for d in m['global_discrepancies']:
     out.append(f'- {d}')
 out.append('')
+o = m['oauth']
+out.append('## User authorization\n')
+out.append(f"- {o['oauth2_user_capable']} of {b['tool_count']} tools accept OAuth 2.0 user tokens; per-tool scopes are listed below and in `src/auth/tool-scopes.ts`.")
+out.append(f"- App-only (X_BEARER_TOKEN required): {', '.join('`' + n + '`' for n in o['app_only'])}.")
+out.append(f"- Unauthenticated: {', '.join('`' + n + '`' for n in o['unauthenticated'])}.")
+out.append(f"- OAuth 1.0a-only: {', '.join(o['oauth1_user_only']) or 'none'}. {o['note']}")
+out.append('')
 out.append('## Extra tools (not counted toward coverage)\n')
 for e in m['extra_tools']:
-    out.append(f"- `{e['name']}` (`{e['operationId']}`): {e['reason']}")
+    op = f" (`{e['operationId']}`)" if e['operationId'] else ''
+    out.append(f"- `{e['name']}`{op}: {e['reason']}")
 out.append('')
 for scope in ['posts-users', 'lists-bookmarks-relationships', 'direct-messages', 'spaces-media', 'platform']:
     out.append(f'## {scope}\n')

@@ -12,9 +12,19 @@ All 84 baseline tools are implemented, registered and covered by mocked HTTP con
 - Where Composio and X enums differ (see x_enum per parameter), input validation uses the official X enum.
 - Composio input `max_results` descriptions advertise automatic multi-page fetching; this server returns a single page and surfaces meta.next_token.
 
+## User authorization
+
+- 77 of 84 tools accept OAuth 2.0 user tokens; per-tool scopes are listed below and in `src/auth/tool-scopes.ts`.
+- App-only (X_BEARER_TOKEN required): `TWITTER_CREATE_COMPLIANCE_JOB`, `TWITTER_GET_COMPLIANCE_JOB`, `TWITTER_GET_COMPLIANCE_JOBS`, `TWITTER_GET_POST_USAGE`, `TWITTER_SEARCH_FULL_ARCHIVE_COUNTS`, `TWITTER_STREAM_POST_LABELS`.
+- Unauthenticated: `TWITTER_GET_OPENAPI_SPEC`.
+- OAuth 1.0a-only: none. Every user-context tool accepts OAuth 2.0 user tokens, so no 3-legged OAuth 1.0a authorization flow is required; OAuth 1.0a remains available via environment credentials. App-only tools require X_BEARER_TOKEN and never receive user tokens.
+
 ## Extra tools (not counted toward coverage)
 
 - `X_FINALIZE_MEDIA_UPLOAD` (`finalizeMediaUpload`): Completes the chunked upload lifecycle that Composio exposes only partially; not counted as Composio coverage.
+- `X_AUTH_CONNECT`: Starts OAuth 2.0 Authorization Code with PKCE (S256) for an X account; returns the authorize URL only.
+- `X_AUTH_STATUS`: Lists connected accounts, granted scopes and expiry without exposing tokens.
+- `X_AUTH_DISCONNECT`: Revokes (POST /2/oauth2/revoke) and deletes the active connected account.
 
 ## posts-users
 
