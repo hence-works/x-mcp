@@ -351,3 +351,65 @@ describe('media lifecycle', () => {
     }
   });
 });
+
+describe('platform tools', () => {
+  it('returns collected label events when the stream window times out', async () => {
+    const { platformTools } = await import('../src/tools/platform.js');
+    const { MediaReader } = await import('../src/media.js');
+    const { XClient } = await import('../src/x/client.js');
+    const { testConfig } = await import('./helpers.js');
+    const config = testConfig({ X_BEARER_TOKEN: TEST_SECRETS.X_BEARER_TOKEN });
+    const client = new XClient(config, {
+      fetch: async (_url, init) => {
+        const encoder = new TextEncoder();
+        const body = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(encoder.encode('{"data":{"event_type":"PublicTweetNotice","tweet_id":"1"}}\r\n'));
+            init.signal?.addEventListener('abort', () => controller.error(new DOMException('aborted', 'AbortError')));
+          },
+        });
+        return new Response(body, { status: 200, headers: { 'content-type': 'application/json' } });
+      },
+    });
+    const tool = platformTools.find((t) => t.name === 'TWITTER_STREAM_POST_LABELS')!;
+    const started = Date.now();
+    const result = await tool.run({ timeout_seconds: 1 }, { client, config, media: new MediaReader(config) });
+    expect(Date.now() - started).toBeLessThan(5000);
+    expect(result).toMatchObject({ event_count: 1, stopped: 'timeout', data: { events: [{ data: { tweet_id: '1' } }] } });
+  });
+
+  it('surfaces stream connection errors', async () => {
+    const h = await connectHarness(queued([{ status: 403, body: { title: 'Client Forbidden', detail: 'enterprise access required' } }]), {
+      env: { X_BEARER_TOKEN: TEST_SECRETS.X_BEARER_TOKEN },
+    });
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_STREAM_POST_LABELS', arguments: { timeout_seconds: 1 } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'http_error', status: 403, title: 'Client Forbidden' } });
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('validates platform inputs locally', async () => {
+    const h = await connectHarness(queued([]));
+    try {
+      const cases = [
+        { name: 'TWITTER_CREATE_ACTIVITY_SUBSCRIPTION', arguments: { event_type: 'follow.follow', filter: {} } },
+        { name: 'TWITTER_CREATE_ACTIVITY_SUBSCRIPTION', arguments: { event_type: 'made.up', filter: { user_id: '1' } } },
+        { name: 'TWITTER_GET_POST_ANALYTICS', arguments: { ids: ['1'], start_time: '2026-10-08T00:00:00Z', end_time: '2026-10-01T00:00:00Z' } },
+        { name: 'TWITTER_GET_POST_ANALYTICS', arguments: { ids: ['1'], start_time: '2026-10-01T00:00:00Z' } },
+        { name: 'TWITTER_GET_COMPLIANCE_JOBS', arguments: { type: 'tweets', status: 'expired' } },
+        { name: 'TWITTER_GET_POST_USAGE', arguments: { days: 91 } },
+        { name: 'TWITTER_STREAM_POST_LABELS', arguments: { backfill_minutes: 6 } },
+        { name: 'TWITTER_GET_OPENAPI_SPEC', arguments: { anything: true } },
+      ];
+      for (const call of cases) {
+        const result = await h.mcp.callTool(call);
+        expect(result.isError, JSON.stringify(call)).toBe(true);
+      }
+      expect(h.requests).toHaveLength(0);
+    } finally {
+      await h.close();
+    }
+  });
+});

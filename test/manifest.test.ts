@@ -38,6 +38,14 @@ describe('coverage manifest conformance', () => {
     expect(new Set(tools.map((t) => t.name)).size).toBe(tools.length);
   });
 
+  it('registers every Composio baseline tool, and only declared extras beyond it', () => {
+    const registered = new Set(tools.filter((t) => t.composio).map((t) => t.name));
+    const missing = manifest.tools.map((t) => t.name).filter((name) => !registered.has(name));
+    expect(missing, 'unimplemented manifest tools').toEqual([]);
+    expect(registered.size).toBe(manifest.baseline.tool_count);
+    expect(tools.filter((t) => !t.composio).map((t) => t.name).sort()).toEqual(manifest.extra_tools.map((e) => e.name).sort());
+  });
+
   for (const tool of tools) {
     describe(tool.name, () => {
       const entry = byName.get(tool.name);
