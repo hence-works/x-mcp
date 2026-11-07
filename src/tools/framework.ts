@@ -38,6 +38,8 @@ export interface ToolDefinition {
   composio: boolean;
   /** Primary X operationId(s), used by the coverage test against coverage/manifest.json. */
   operationIds: readonly string[];
+  /** Auth types accepted by the primary X operation (official spec security). */
+  auth: readonly AuthKind[];
   inputSchema: z.ZodObject<z.ZodRawShape>;
   annotations: ToolAnnotationsLite;
   run(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolSuccess>;
@@ -204,6 +206,7 @@ export function httpTool<S extends z.ZodRawShape>(spec: HttpToolSpec<S>): ToolDe
     scope: spec.scope,
     composio: spec.composio ?? true,
     operationIds: [spec.operationId],
+    auth: spec.auth,
     inputSchema: schema as unknown as z.ZodObject<z.ZodRawShape>,
     annotations: annotationsFor(spec.method, spec.destructive),
     async run(args, ctx) {
@@ -212,5 +215,34 @@ export function httpTool<S extends z.ZodRawShape>(spec: HttpToolSpec<S>): ToolDe
       const res = await ctx.client.request({ ...req, signal: ctx.signal });
       return success(res);
     },
+  };
+}
+
+export interface CustomToolSpec<S extends z.ZodRawShape> {
+  name: string;
+  title: string;
+  description: string;
+  scope: ToolScope;
+  operationIds: readonly string[];
+  auth: readonly AuthKind[];
+  input: S;
+  annotations: ToolAnnotationsLite;
+  composio?: boolean;
+  run(args: z.infer<z.ZodObject<S>>, ctx: ToolContext): Promise<ToolSuccess>;
+}
+
+/** Tool with a hand-written handler (multipart bodies, multi-step flows, streams). */
+export function customTool<S extends z.ZodRawShape>(spec: CustomToolSpec<S>): ToolDefinition {
+  return {
+    name: spec.name,
+    title: spec.title,
+    description: spec.description,
+    scope: spec.scope,
+    composio: spec.composio ?? true,
+    operationIds: spec.operationIds,
+    auth: spec.auth,
+    inputSchema: z.strictObject(spec.input) as unknown as z.ZodObject<z.ZodRawShape>,
+    annotations: spec.annotations,
+    run: (args, ctx) => spec.run(args as z.infer<z.ZodObject<S>>, ctx),
   };
 }

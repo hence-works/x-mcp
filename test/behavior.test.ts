@@ -250,3 +250,104 @@ describe('direct messages', () => {
     }
   });
 });
+
+describe('media lifecycle', () => {
+  const MEDIA = '1880028106020515840';
+  const video = { base64: Buffer.alloc(32, 1).toString('base64'), mime_type: 'video/mp4' };
+
+  it('fails with media_processing when X reports a failed state', async () => {
+    const h = await connectHarness(
+      queued([
+        { body: { data: { id: MEDIA } } },
+        { body: {} },
+        { body: { data: { id: MEDIA, processing_info: { state: 'in_progress', check_after_secs: 1 } } } },
+        { body: { data: { id: MEDIA, processing_info: { state: 'failed', error: { message: 'InvalidMedia' } } } } },
+      ]),
+    );
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_UPLOAD_LARGE_MEDIA', arguments: { media: video } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'media_processing' } });
+      expect(h.requests.map((r) => `${r.method} ${r.url.pathname}`)).toEqual([
+        'POST /2/media/upload/initialize',
+        `POST /2/media/upload/${MEDIA}/append`,
+        `POST /2/media/upload/${MEDIA}/finalize`,
+        'GET /2/media/upload',
+      ]);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('stops polling at X_MCP_MEDIA_PROCESSING_TIMEOUT_MS', async () => {
+    const pending = { body: { data: { id: MEDIA, processing_info: { state: 'pending', check_after_secs: 5 } } } };
+    const h = await connectHarness(queued([{ body: { data: { id: MEDIA } } }, { body: {} }, pending, pending, pending]), {
+      env: { ...TEST_SECRETS, X_MCP_MEDIA_PROCESSING_TIMEOUT_MS: '10000' },
+    });
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_UPLOAD_LARGE_MEDIA', arguments: { media: video } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'media_processing' } });
+      expect(text(result)).toMatch(/still pending/);
+      expect(h.sleeps).toEqual([5000, 5000]);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('stops after a failed APPEND without retrying or finalizing', async () => {
+    const h = await connectHarness(queued([{ body: { data: { id: MEDIA } } }, { status: 503, body: { title: 'Service Unavailable' } }]));
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_UPLOAD_LARGE_MEDIA', arguments: { media: video } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'http_error', status: 503 } });
+      expect(h.requests).toHaveLength(2);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('validates one-shot uploads locally', async () => {
+    const h = await connectHarness(queued([]));
+    try {
+      const big = Buffer.alloc(5 * 1024 * 1024 + 1).toString('base64');
+      const cases = [
+        { media: { base64: Buffer.from('x').toString('base64'), mime_type: 'image/png' }, shared: true },
+        { media: { base64: big, mime_type: 'image/png' } },
+        { media: { base64: Buffer.from('x').toString('base64'), mime_type: 'video/mp4' } },
+        { media: { base64: Buffer.from('x').toString('base64') } },
+        { media: { url: 'https://example.com/a.png' } },
+      ];
+      for (const args of cases) {
+        const result = await h.mcp.callTool({ name: 'TWITTER_UPLOAD_MEDIA', arguments: args });
+        expect(result.isError, JSON.stringify(args).slice(0, 80)).toBe(true);
+      }
+      const unknown = await h.mcp.callTool({
+        name: 'TWITTER_UPLOAD_LARGE_MEDIA',
+        arguments: { media: { base64: Buffer.from('x').toString('base64'), mime_type: 'application/zip' } },
+      });
+      expect(unknown.structuredContent).toMatchObject({ error: { type: 'invalid_input' } });
+      expect(h.requests).toHaveLength(0);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('uploads from X_MCP_MEDIA_ROOT and refuses paths outside it', async () => {
+    const { mkdtemp, writeFile } = await import('node:fs/promises');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const root = await mkdtemp(path.join(os.tmpdir(), 'x-mcp-root-'));
+    await writeFile(path.join(root, 'photo.jpg'), Buffer.from([0xff, 0xd8, 0xff, 0xe0]));
+    const h = await connectHarness(queued([{ body: { data: { id: MEDIA } } }]), {
+      env: { ...TEST_SECRETS, X_MCP_MEDIA_ROOT: root },
+    });
+    try {
+      const ok = await h.mcp.callTool({ name: 'TWITTER_UPLOAD_MEDIA', arguments: { media: { path: 'photo.jpg' } } });
+      expect(ok.isError).toBeFalsy();
+      expect(h.requests[0]!.body).toEqual({ media: Buffer.from([0xff, 0xd8, 0xff, 0xe0]).toString('base64'), media_category: 'tweet_image' });
+      const escape = await h.mcp.callTool({ name: 'TWITTER_UPLOAD_MEDIA', arguments: { media: { path: '/etc/hostname' } } });
+      expect(escape.structuredContent).toMatchObject({ error: { type: 'invalid_input' } });
+      expect(h.requests).toHaveLength(1);
+    } finally {
+      await h.close();
+    }
+  });
+});

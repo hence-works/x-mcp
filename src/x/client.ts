@@ -140,6 +140,11 @@ export class XClient {
     this.now = deps.now ?? (() => Date.now());
   }
 
+  /** Waits using the injected clock (tests run without real delays). */
+  wait(ms: number): Promise<void> {
+    return this.sleep(ms);
+  }
+
   /** Picks the credential to use, or throws a configuration error naming the env vars to set. */
   selectAuth(accepted: readonly AuthKind[]): AuthKind | undefined {
     if (accepted.length === 0) return undefined;

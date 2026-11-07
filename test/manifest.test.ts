@@ -52,6 +52,7 @@ describe('coverage manifest conformance', () => {
         expect(entry, 'missing from coverage/manifest.json').toBeDefined();
         expect(tool.scope).toBe(entry!.scope);
         expect([...tool.operationIds]).toEqual(entry!.endpoints.map((e) => e.operationId));
+        expect([...tool.auth].sort(), 'accepted auth must match the X spec security').toEqual([...entry!.endpoints[0]!.auth].sort());
       });
 
       it('accepts every Composio parameter with matching required-ness and the official enum', () => {
