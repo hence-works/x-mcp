@@ -1,0 +1,7 @@
+node_modules/
+build/
+coverage-report/
+*.log
+.env
+.env.*
+.claude/

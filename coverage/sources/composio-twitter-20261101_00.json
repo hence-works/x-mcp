@@ -1,0 +1,3681 @@
+{
+ "toolkit": "TWITTER",
+ "version": "20261101_00",
+ "source": "https://docs.composio.dev/toolkits/twitter.md",
+ "retrieved": "2026-11-07",
+ "tools": [
+  {
+   "slug": "TWITTER_ADD_LIST_MEMBER",
+   "title": "Add a list member",
+   "description": "Adds a user to a specified Twitter List; the list must be owned by the authenticated user.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List to which the user will be added."
+    },
+    {
+     "name": "user_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifier of the User to add to the list. If you have a username, convert it to a `user_id` first (e.g., via GET /2/users/by/username/{username})."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_ADD_POST_TO_BOOKMARKS",
+   "title": "Add post to bookmarks",
+   "description": "Adds a specified, existing, and accessible Tweet to a user's bookmarks, with success indicated by the 'bookmarked' field in the response.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The user ID of the authenticated user making the request. This ID is used as a path parameter to specify whose bookmark collection the Tweet will be added to."
+    },
+    {
+     "name": "tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifier (string) of the Tweet to be bookmarked, provided in the request body. String type used to support large integer values."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_APPEND_MEDIA_UPLOAD",
+   "title": "Append Media Upload",
+   "description": "Append data chunk to an ongoing media upload session on X/Twitter. Use this action during chunked media uploads to append each segment of media data in sequence.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The media identifier for the media to perform the append operation."
+    },
+    {
+     "name": "media",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Base64-encoded media data chunk to append. This should be a segment of the media file being uploaded in the chunked upload process."
+    },
+    {
+     "name": "segment_index",
+     "type": "integer",
+     "required": true,
+     "enum": null,
+     "description": "Zero-based index of the media segment being appended. Start with 0 for the first chunk and increment by 1 for each subsequent chunk."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_BOOKMARKS_BY_USER",
+   "title": "Get bookmarks by user",
+   "description": "Retrieves Tweets bookmarked by the authenticated user, where the provided User ID must match the authenticated user's ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Defaults to 'me' (recommended). Retrieves bookmarks for the currently authenticated user. You can ONLY retrieve YOUR OWN bookmarks. Passing any other user's ID will fail with a 400 error."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of objects to expand and include in the response, providing more detailed information about entities like authors, media, or referenced Tweets. Refer to the `ExpansionsEnm0` enum for available expansion options."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of bookmarked Tweets to return per page, between 1 and 100 inclusive."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of specific Poll object fields to include when `attachments.poll_ids` is part of `expansions`. Refer to the `PollFieldsEnm0` enum for available field options."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of specific User object fields to include for user objects (e.g., authors) when requested via `expansions`. Refer to the `UserFieldsEnm0` enum for available field options."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of specific Media object fields to include when `attachments.media_keys` is part of `expansions`. Refer to the `MediaFieldsEnm0` enum for available field options."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of specific Place object fields to include when `geo.place_id` is part of `expansions`. Refer to the `PlaceFieldsEnm0` enum for available field options."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of specific Tweet fields to include in the response for each bookmarked Tweet. Omitting this parameter will result in a default set of fields being returned. Refer to the `TweetFieldsEnm0` enum for available field options."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Pagination token MUST be obtained from `meta.next_token` or `meta.previous_token` of a prior BookmarksByUser response. CRITICAL: Do NOT construct, modify, or guess token values - Twitter tokens are cryptographically signed and ANY user-generated or modified value will fail with HTTP 400. Valid tokens are opaque alphanumeric strings (typically 40+ characters). Omit this parameter entirely to fetch the first page of results."
+    },
+    {
+     "name": "composio_execution_message",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Internal field for execution messages. Do not set manually."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_CREATE_ACTIVITY_SUBSCRIPTION",
+   "title": "Create activity subscription",
+   "description": "Tool to create a subscription for an X activity event. Use when you need to monitor specific user activities like profile updates, follows, or spaces events.",
+   "params": [
+    {
+     "name": "tag",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Optional tag to label this subscription (1-200 characters)."
+    },
+    {
+     "name": "filter",
+     "type": "object",
+     "required": true,
+     "enum": null,
+     "description": "Filter criteria specifying which events to receive. Must include at least one of 'user_id' or 'keyword'."
+    },
+    {
+     "name": "event_type",
+     "type": "string",
+     "required": true,
+     "enum": [
+      "profile.update.bio",
+      "profile.update.profile_picture",
+      "profile.update.banner_picture",
+      "profile.update.screenname",
+      "profile.update.geo",
+      "profile.update.url",
+      "profile.update.verified_badge",
+      "profile.update.affiliate_badge",
+      "profile.update.handle",
+      "news.new",
+      "follow.follow",
+      "follow.unfollow",
+      "spaces.start",
+      "spaces.end",
+      "chat.received",
+      "chat.sent"
+     ],
+     "description": "The type of activity event to subscribe to. Examples: 'profile.update.bio', 'follow.follow', 'spaces.start'."
+    },
+    {
+     "name": "webhook_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The unique identifier of this webhook config."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_CREATE_COMPLIANCE_JOB",
+   "title": "Create compliance job",
+   "description": "Creates a new compliance job to check the status of Tweet or user IDs; upload IDs as a plain text file (one ID per line) to the `upload_url` received in the response.",
+   "params": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Optional. A user-defined name for the compliance job. Must be unique and up to 64 characters."
+    },
+    {
+     "name": "type",
+     "type": "string",
+     "required": true,
+     "enum": [
+      "tweets",
+      "users"
+     ],
+     "description": "Type of compliance job: 'tweets' for Tweet IDs or 'users' for user IDs."
+    },
+    {
+     "name": "resumable",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "If true, returns a pre-signed URL for resumable uploads, useful for large ID lists. Defaults to false if not specified."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_CREATE_DM_CONVERSATION",
+   "title": "Create group DM conversation",
+   "description": "Creates a new group Direct Message (DM) conversation on Twitter. REQUIRED PARAMETERS: - conversation_type: Must be 'Group' - participant_ids: List of Twitter user IDs to include in the conversation - message: JSON object with the initial message. Must contain 'text' field. To include media attachments, use message.attachments array with media_id (NOT media_url): {\"text\": \"...\", \"attachments\": [{\"media_id\": \"1234567890\"}]} Note: Media must be uploaded first using the upload_media action to obtain a media_id.",
+   "params": [
+    {
+     "name": "message",
+     "type": "object",
+     "required": true,
+     "enum": null,
+     "description": "REQUIRED. A JSON object representing the initial message for the DM conversation. It must contain a 'text' field for the message content. To include media, use an 'attachments' array with media_id (NOT media_url): attachments: [{\"media_id\": \"media_id_string\"}]. Media must be uploaded first using upload_media action to obtain a media_id."
+    },
+    {
+     "name": "participant_ids",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "REQUIRED. A list of Twitter User IDs for the participants to be included in the group DM conversation. Minimum 2 user IDs required. The authenticated user is implicitly included and should not be added to this list."
+    },
+    {
+     "name": "conversation_type",
+     "type": "string",
+     "required": true,
+     "enum": [
+      "Group"
+     ],
+     "description": "REQUIRED. Specifies the type of conversation to be created. Must be 'Group' for this action."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_CREATE_LIST",
+   "title": "Create a list",
+   "description": "Creates a new, empty List on X (formerly Twitter), for which the provided name must be unique for the authenticated user; accounts are added separately.",
+   "params": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Name for the List (1-25 characters)."
+    },
+    {
+     "name": "private",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Sets List visibility: True for private, False for public."
+    },
+    {
+     "name": "description",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Brief description for the List (up to 100 characters)."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_CREATION_OF_A_POST",
+   "title": "Create a post",
+   "description": "Creates a Tweet on Twitter; `text` is required unless `card_uri`, `media_media_ids`, `poll_options`, or `quote_tweet_id` is provided. Example - Creating a tweet with media and location: { \"text\": \"Check out our latest product update! \ud83d\ude80\", \"media_media_ids\": [\"1455952740635586573\"], \"geo_place_id\": \"df51dec6f4ee2b2c\" } Example - Quote tweet with commentary: { \"text\": \"This is a game-changer for the industry! Here's why... \ud83e\uddf5\", \"quote_tweet_id\": \"1453828617121234945\" } Example - Reply to a tweet: { \"text\": \"Great point! Here's my take on this...\", \"reply_in_reply_to_tweet_id\": \"1453828617121234945\" }",
+   "params": [
+    {
+     "name": "text",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Text content of the Tweet. Length limits are enforced by the X (Twitter) API and depend on the authenticated user's account tier \u2014 basic accounts are typically capped at 280 weighted characters (emojis/CJK count as 2, URLs count as 23 regardless of length), while X Premium accounts may post longer content. Validation is delegated to the API; over-length submissions return a 4xx error. At least one of `text`, `media_media_ids`, `card_uri`, `poll_options`, or `quote_tweet_id` must be provided with a non-empty value. Empty strings or whitespace-only strings are not valid. IMPORTANT: Do not include t.co URLs (Twitter's URL shortener) - use original URLs and Twitter will shorten them automatically. Also avoid URL placeholders like <URL>, [URL], or {URL} which will be rejected."
+    },
+    {
+     "name": "card_uri",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "URI of a card to attach. Mutually exclusive with `quote_tweet_id`, `poll` parameters, `media` parameters, and `direct_message_deep_link`."
+    },
+    {
+     "name": "nullcast",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Marks the Tweet as a promoted-only post, not appearing in public timelines or served to followers."
+    },
+    {
+     "name": "geo_place_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Twitter Place ID to associate with the Tweet."
+    },
+    {
+     "name": "poll_options",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "List of 2 to 4 poll options (max 25 characters each). Required if creating a poll. Mutually exclusive with `card_uri`."
+    },
+    {
+     "name": "quote_tweet_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "ID of the Tweet to quote. MUST be a numeric string containing only digits (1-19 digits). Accepts string or numeric types, automatically converted to string. Example: '1346889436626259968' is valid. Placeholder values like 'unknown', 'null', 'none' are NOT valid. Mutually exclusive with `card_uri`, `poll` parameters, and `direct_message_deep_link`."
+    },
+    {
+     "name": "reply_settings",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "following",
+      "mentionedUsers",
+      "subscribers"
+     ],
+     "description": "Specifies who can reply to this Tweet. Valid values are: 'following' (users following the author), 'mentionedUsers' (users mentioned in the Tweet - note: use 'mentionedUsers', NOT 'mentioning'), or 'subscribers' (X Premium subscribers only)."
+    },
+    {
+     "name": "media_media_ids",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Up to 4 Media IDs obtained from prior uploads. Each Media ID MUST be a numeric string containing only digits (1-19 digits), matching the pattern ^[0-9]{1,19}$. Example: '1455952740635586573' is valid, 'PLACEHOLDER_MEDIA_ID' is invalid. At least one of `text` or `media_media_ids` must be provided. Mutually exclusive with `card_uri`."
+    },
+    {
+     "name": "poll_reply_settings",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "following",
+      "mentionedUsers",
+      "subscribers",
+      "verified"
+     ],
+     "description": "Per X's live TweetCreateRequest schema (poll.reply_settings), all 4 values are valid - the same set as the top-level reply_settings enum, plus 'verified' (confirmed via api.x.com/2/openapi.json)."
+    },
+    {
+     "name": "media_tagged_user_ids",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User IDs to tag in media; tagged users must have enabled photo tagging. Mutually exclusive with `card_uri`."
+    },
+    {
+     "name": "poll_duration_minutes",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Poll duration in minutes (5-10080). Required if `poll_options` are provided. Mutually exclusive with `card_uri`."
+    },
+    {
+     "name": "direct_message_deep_link",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Deep link to a private Direct Message conversation. Mutually exclusive with `card_uri`."
+    },
+    {
+     "name": "for_super_followers_only",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Restricts Tweet visibility to the author's Super Followers."
+    },
+    {
+     "name": "reply_in_reply_to_tweet_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "ID of the Tweet to which this is a reply. MUST be a numeric string containing only digits (1-19 digits). Accepts string or numeric types, automatically converted to string. Example: '1346889436626259960' is valid, 'Hello' is invalid. Required if creating a reply. Note: Twitter does not allow replies to tweets that have been edited - use quote_tweet_id instead for edited tweets."
+    },
+    {
+     "name": "reply_exclude_reply_user_ids",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User IDs to exclude from @mentioning in the reply; these users will not be notified. Used when `reply_in_reply_to_tweet_id` is set."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_DELETE_DM",
+   "title": "Delete direct message",
+   "description": "Permanently deletes a specific Twitter Direct Message (DM) event using its `event_id` if the authenticated user sent it; this action is irreversible and does not delete entire conversations.",
+   "params": [
+    {
+     "name": "event_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Direct Message event to be deleted."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_DELETE_LIST",
+   "title": "Delete list",
+   "description": "Permanently deletes a specified Twitter List using its ID, which must be owned by the authenticated user; this action is irreversible and the list must already exist.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List to be deleted."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_FOLLOWERS_BY_USER_ID",
+   "title": "Get followers by user id",
+   "description": "Retrieves a list of users who follow a specified public Twitter user ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the User to lookup."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Array of fields to expand."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of results per page (1-1000). Defaults to 100 if not specified."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Array of User fields to display."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Array of Tweet fields to display."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token for paginating results."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_FOLLOWING_BY_USER_ID",
+   "title": "Get following by user ID",
+   "description": "Retrieves users followed by a specific Twitter user, allowing pagination and customization of returned user and tweet data fields via expansions.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter User whose following list is to be retrieved."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand (e.g., `pinned_tweet_id`) to include related data alongside user information."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of users to return per page, typically between 1 and 1000. Defaults to 100 if not specified."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to include for each followed user, providing additional details."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields to include for expanded tweet-related objects (e.g., `pinned_tweet_id`)."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token obtained from the `next_token` field in a previous response, used to fetch the next page of results. Omit for the first page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_FOLLOW_LIST",
+   "title": "Follow a list",
+   "description": "Allows the authenticated user (`id`) to follow a specific Twitter List (`list_id`) they are permitted to access, subscribing them to the list's timeline; this does not automatically follow individual list members.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique numeric identifier of the authenticated user who will follow the list. Must match the currently authenticated user's ID (obtainable via user_lookup_me action). This is a required path parameter."
+    },
+    {
+     "name": "list_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique numeric identifier (1-19 digits) of the Twitter/X List to follow. The list must be public, or the authenticated user must have access to a private list. List IDs can be found in list URLs or via list lookup actions."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_FOLLOW_USER",
+   "title": "Follow a user",
+   "description": "Allows an authenticated user (path `id`) to follow another user (`target_user_id`), which results in a pending request if the target user's tweets are protected.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The User ID of the authenticated user initiating the follow request. If not provided, it will be automatically fetched from the authenticated session."
+    },
+    {
+     "name": "target_user_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the User to be followed. This ID is a numeric string with 1 to 19 digits. Required parameter. Alternatively, you can pass 'user_id' which will be treated as the target user ID."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_FULL_ARCHIVE_SEARCH",
+   "title": "Search full archive of tweets",
+   "description": "Searches the full archive of public Tweets from March 2006 onwards, with optional time bounds. Search queries are normalized, and parseable time bounds outside the supported range are adjusted.",
+   "params": [
+    {
+     "name": "query",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The search query or rule to match Tweets. Rules: (1) Must contain at least one positive term (word, hashtag, username, phrase) - queries with only negations (e.g. '-is:retweet') or only operators (e.g. 'lang:en') are invalid. (2) Spaces act as implicit AND (e.g. 'cat dog' finds both). Do NOT use the word 'AND' - causes 'Ambiguous use of and' errors. (3) Uppercase OR for OR logic (e.g. 'cat OR dog'). (4) '-' prefix for NOT (e.g. '-retweet'). (5) Parentheses for grouping (e.g. '(cat OR dog) photo'). (6) Wildcards (*) are NOT supported. (7) Standalone '#' is invalid - hashtags need text after '#'. (8) '&' is auto-converted to space. (9) Context annotations: 'context:domain_id.entity_id' filters by X's auto-detected topics/entities (e.g. 'context:12.706083845846597632' for LA Lakers) - only valid domain-entity pairs work; invalid IDs cause 'Invalid Domain-Entity pair specified' errors."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The newest UTC timestamp (YYYY-MM-DDTHH:mm:ssZ) to which Tweets will be provided. Exclusive. Must be at least 10 seconds prior to the current request time. If provided time is too recent, it will be automatically adjusted to 10 seconds before the request time. Example: '2021-01-31T23:59:59Z'."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns results with a Tweet ID numerically greater (more recent) than the specified ID."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns results with a Tweet ID numerically less (older) than the specified ID."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which objects to expand in the response for more details."
+    },
+    {
+     "name": "next_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token obtained from a previous response's 'meta.next_token' field to retrieve the next page of results. Do not modify this value."
+    },
+    {
+     "name": "sort_order",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "recency",
+      "relevancy"
+     ],
+     "description": "Specifies the order in which to return results. 'recency' returns the most recent Tweets first, 'relevancy' returns Tweets based on relevance."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The oldest UTC timestamp (YYYY-MM-DDTHH:mm:ssZ) from which Tweets will be provided. Inclusive. Must be on or after 2006-03-21T00:00:00Z (the date of the first tweet). If provided time is before this minimum date, it will be automatically adjusted to 2006-03-21T00:00:00Z. Example: '2021-01-01T00:00:00Z'."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of search results to return per request. Must be between 10 and 500."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which poll fields to include if 'attachments.poll_ids' is expanded."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional user object fields to include if 'author_id' or other user-related expansions are used. Note: 'id', 'name', and 'username' are always returned by default for user objects. While these default fields can be included in this parameter, they are redundant since the API returns them automatically."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which media fields to include if 'attachments.media_keys' is expanded."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which place fields to include if 'geo.place_id' is expanded."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which Tweet fields to include in the response."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_BLOCKED_USERS",
+   "title": "Get users blocked by user ID",
+   "description": "Retrieves the authenticated user's own block list. IMPORTANT: You can only retrieve YOUR OWN block list - the `id` parameter must be the authenticated user's ID. Use the 'Get authenticated user' action first to obtain your user ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The authenticated user's own Twitter user ID. IMPORTANT: This endpoint only allows you to retrieve YOUR OWN block list - you cannot query another user's blocked accounts. The ID provided MUST match the currently authenticated user's ID. Use the 'Get authenticated user' (user_lookup_me) action to retrieve your user ID if needed."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Related objects to expand and include, like `pinned_tweet_id` for full Tweet objects. Sent as a comma-separated string to the API."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of blocked users per page (1-100). API defaults to 100 if unspecified."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to include for each blocked user. Sent as a comma-separated string to the API (e.g., 'created_at,description')."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to include for expanded Tweet objects (e.g., via `expansions=pinned_tweet_id`). Sent as a comma-separated string to the API."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token for fetching the next page of results, obtained from `meta.next_token` of a previous response."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_COMPLIANCE_JOB",
+   "title": "Retrieve compliance job by id",
+   "description": "Retrieves status, download/upload URLs, and other details for an existing Twitter compliance job specified by its unique ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Compliance Job to retrieve."
+    },
+    {
+     "name": "compliance_job_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies fields for the ComplianceJob object in the response; if omitted, a default set is returned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_COMPLIANCE_JOBS",
+   "title": "Retrieve compliance jobs",
+   "description": "Returns a list of recent compliance jobs, filtered by type (tweets or users) and optionally by status.",
+   "params": [
+    {
+     "name": "type",
+     "type": "string",
+     "required": true,
+     "enum": [
+      "tweets",
+      "users"
+     ],
+     "description": "Specifies the type of compliance job to retrieve (tweets or users)."
+    },
+    {
+     "name": "status",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "complete",
+      "created",
+      "expired",
+      "failed",
+      "in_progress"
+     ],
+     "description": "Filters compliance jobs by status; if omitted, jobs of all statuses for the specified type are returned."
+    },
+    {
+     "name": "compliance_job_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific `ComplianceJob` fields to include in the response; if omitted, a default set of fields is returned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_DM_CONVERSATION_EVENTS",
+   "title": "Get DM events for a DM conversation",
+   "description": "Fetches Direct Message (DM) events for a one-on-one conversation with a specified participant ID, ordered chronologically newest to oldest; does not support group DMs.",
+   "params": [
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand and include. E.g., `sender_id` includes the full User object for each DM sender."
+    },
+    {
+     "name": "event_types",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "DM event types to include. If unspecified, all types are returned."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum DM events per page (1-100)."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for User objects if `expansions` includes `sender_id` or `participant_ids`. Default: basic user fields."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for Media objects if `expansions` includes `attachments.media_keys`. Default: basic media fields."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for Tweet objects if `expansions` includes `referenced_tweets.id`. Default: basic tweet fields."
+    },
+    {
+     "name": "participant_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "User ID of the other participant in the one-to-one DM conversation."
+    },
+    {
+     "name": "dm_event_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for each DM event object. Default: 'id', 'event_type'."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from `meta.next_token` or `meta.previous_token` of a prior response to fetch a specific results page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_DM_EVENT",
+   "title": "Get DM events by ID",
+   "description": "Fetches a specific Direct Message event by ID, with optional related-data expansions. The response model retains expanded tweets but not expanded users.",
+   "params": [
+    {
+     "name": "event_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Direct Message event to retrieve."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Related objects to expand and include in the response."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to include for user objects in the response."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Media fields to include for media objects in the response."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields to include for tweet objects in the response."
+    },
+    {
+     "name": "dm_event_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "DmEvent fields to include in the response."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_LIST",
+   "title": "Lookup list by ID",
+   "description": "Returns metadata for a specific Twitter List, identified by its ID; does not return list members but can expand the owner's User object via the `expansions` parameter.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List to retrieve. This is a numeric string representing the List ID."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of objects to expand in the response. Currently, the only supported expansion is `owner_id`, which, if included, returns the full User object for the list's owner within an `includes` object in the response."
+    },
+    {
+     "name": "list_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to be returned for the List object. Valid fields include `created_at`, `description`, `follower_count`, `id`, `member_count`, `name`, `owner_id`, and `private`. If unspecified, default fields are returned."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to be returned for User objects if `owner_id` is specified in `expansions`. Valid fields include attributes like `id`, `name`, `username`, `created_at`, `description`, `public_metrics`, etc. If unspecified, default fields are returned for User objects."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_LIST_FOLLOWERS",
+   "title": "Get list followers",
+   "description": "Fetches a list of users who follow a specific Twitter List, identified by its ID; ensure the authenticated user has access if the list is private.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifier of the Twitter List for which to retrieve followers."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to expand for more detailed information on related entities (e.g., pinned tweets, affiliated users)."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of user results per page."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to include in the response for additional details on each follower."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields to include if tweet objects (e.g., pinned_tweet_id) are expanded."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Pagination token from a previous response's `next_token` to retrieve the next page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_LIST_MEMBERS",
+   "title": "Fetch list members by id",
+   "description": "Fetches members of a specific Twitter List, identified by its unique ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to expand for each user, such as `pinned_tweet_id` to include the user's pinned Tweet. If an expansion is included, `tweet.fields` can be used to specify which Tweet fields are returned."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of list members to return per page. Values can range from 1 to 100."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which additional user details to return for each list member."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of Tweet fields to be included if an expansion like `pinned_tweet_id` or `most_recent_tweet_id` is requested. This specifies what details of the expanded Tweet should be returned."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token for fetching a specific page of results. Obtained from the `next_token` or `previous_token` field in the response's `meta` object."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_MEDIA_UPLOAD_STATUS",
+   "title": "Get Media Upload Status",
+   "description": "Get the processing status of uploaded media (videos/GIFs) on X/Twitter. Only call this when the FINALIZE command returned a processing_info field. Poll every 3\u20135 seconds with a 60\u2013120 second maximum timeout to avoid HTTP 429 errors. Response state cycles through 'pending', 'in_progress', 'succeeded', and 'failed'. Only attach media_id to a tweet when state is 'succeeded'. State 'failed' is terminal \u2014 requires a completely new upload via TWITTER_UPLOAD_MEDIA or TWITTER_UPLOAD_LARGE_MEDIA. Video/GIF processing takes 30\u2013120 seconds; posting before 'succeeded' results in non-playable media.",
+   "params": [
+    {
+     "name": "media_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Numeric media ID (1-19 digits) returned from a previous media upload."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_MUTED_USERS",
+   "title": "Get muted users",
+   "description": "Returns user objects muted by the X user identified by the `id` path parameter.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The User ID of the authenticated user whose muted users are to be retrieved. This ID must correspond to an existing X user."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of fields to expand for related objects in the response, providing more detailed information. For example, `pinned_tweet_id` can be expanded to include the full Tweet object."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of user objects to return per page. Default is 100, minimum is 1, maximum is 1000."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of user fields to include in the response. These fields provide additional information about the muted user objects (e.g., `created_at`, `description`)."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of Tweet fields to include for any expanded Tweet objects (e.g., if `pinned_tweet_id` is in `expansions`). This is only relevant if Tweet objects are being expanded."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token obtained from a previous response, used to fetch the next page of results. If not provided, the first page is returned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_OPENAPI_SPEC",
+   "title": "Fetch OpenAPI specification",
+   "description": "Fetches the OpenAPI specification (JSON) for Twitter's API v2, used to programmatically understand the API's structure for developing client libraries or tools.\n\n#### Output\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `data` | string | Yes | Data from the action execution |\n| `error` | string | No | Error if any occurred during the execution of the action |\n| `successful` | boolean | Yes | Whether or not the action execution was successful or not |",
+   "params": []
+  },
+  {
+   "slug": "TWITTER_GET_POST_ANALYTICS",
+   "title": "Get Post analytics",
+   "description": "Tool to retrieve analytics data for specified Posts within a defined time range. Use when you need engagement metrics, impressions, or other analytics for one or more Posts. Requires OAuth 2.0 with tweet.read and users.read scopes. Requires an X Enterprise API plan. Accounts on Free, Basic, Pro, or Pay-Per-Use tiers will receive a 403 Forbidden on every call, regardless of scopes or request correctness - this is not something a connected account's OAuth grant can unlock.",
+   "params": [
+    {
+     "name": "ids",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "A comma-separated list of Post IDs (up to 100 allowed). Each ID should be a numeric string matching pattern ^[0-9]{1,19}$."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The UTC timestamp representing the end of the time range in format YYYY-MM-DDTHH:mm:ssZ. Must be a valid RFC3339 datetime string."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The UTC timestamp representing the start of the time range in format YYYY-MM-DDTHH:mm:ssZ. Must be a valid RFC3339 datetime string."
+    },
+    {
+     "name": "granularity",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "hourly",
+      "daily",
+      "weekly",
+      "total"
+     ],
+     "description": "The granularity for the analytics results. Determines how the metrics are aggregated over the time range."
+    },
+    {
+     "name": "analytics.fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of analytics fields to display. If not specified, all available fields will be returned. Accepts either a list or a comma-separated string."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_POST_RETWEETERS_ACTION",
+   "title": "Get post retweeters",
+   "description": "Retrieves users who publicly retweeted a specified public Post ID, excluding Quote Tweets and retweets from private accounts.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Post (Tweet) for which to retrieve retweeting users. This ID must be for an existing public Post."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand and include, such as pinned Tweets of retweeters."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of user objects per page (1-100, default 100)."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to include for each user who retweeted the Post."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields for expanded Tweet objects (e.g., when `expansions` includes 'pinned_tweet_id')."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token obtained from a previous response's `meta.next_token` field, used to fetch the next page of results. If not provided, the first page is returned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_POST_RETWEETS",
+   "title": "Retrieve retweets of a post",
+   "description": "Retrieves Tweets that Retweeted a specified public or authenticated-user-accessible Tweet ID, optionally customizing the response with fields and expansions.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Tweet for which to retrieve Retweets."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies objects to expand for related data on Retweeting Tweets or their authors (e.g., `author_id`, `referenced_tweets.id`)."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Specifies the maximum number of Retweets to return, between 10 and 100."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Poll fields to include if `expansions` contains `attachments.poll_ids`."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields for authors of Retweeting Tweets, applicable if `expansions` includes `author_id`."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Media fields to include if `expansions` contains `attachments.media_keys`."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Place fields to include if `expansions` contains `geo.place_id`."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies Tweet fields to include for additional information about the Retweeting Tweets."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Pagination token from a previous response's `meta.next_token` to request the next page of results."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_POST_USAGE",
+   "title": "Fetch tweet usage data",
+   "description": "Fetches Tweet usage statistics for a Project (e.g., consumption, caps, daily breakdowns for Project & Client Apps) to monitor API limits; data can be retrieved for 1 to 90 days.",
+   "params": [
+    {
+     "name": "days",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Specifies the number of days (1 to 90) to retrieve usage data for. Defaults to 7 days."
+    },
+    {
+     "name": "usage_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of specific usage metrics to retrieve. Available fields include: 'cap_reset_day', 'daily_client_app_usage', 'daily_project_usage', 'project_cap', 'project_id', 'project_usage'. If omitted, all available usage fields are returned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_RECENT_DM_EVENTS",
+   "title": "Get recent direct message events",
+   "description": "Returns recent Direct Message events for the authenticated user, such as new messages or changes in conversation participants.",
+   "params": [
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of fields to expand."
+    },
+    {
+     "name": "event_types",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "The set of event_types to include in the results."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Number of DM events to return in this single page (1-100). This action does not internally paginate; if `meta.has_more` is true in the response, pass `meta.next_token` as `pagination_token` in a follow-up call to fetch the next page."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of User fields to display."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of Media fields to display."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of Tweet fields to display."
+    },
+    {
+     "name": "dm_event_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of DmEvent fields to display."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Pagination token from `meta.next_token` of a previous response. Omit for the first page; pass the returned token in a follow-up call to fetch the next page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_SPACE_BY_ID",
+   "title": "Look up space by ID",
+   "description": "Retrieves details for a Twitter Space by its ID, allowing for customization and expansion of related data, provided the Space ID is valid and accessible.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifier of the Twitter Space to retrieve."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand in the response (e.g., `creator_id`). Customize with corresponding `*_fields`. See ExpansionsEnm0 for options."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for User objects expanded via `expansions` (e.g., if `creator_id` is expanded). See UserFieldsEnm0 for options."
+    },
+    {
+     "name": "space_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to include for the Space object; defaults to a standard set if omitted. See SpaceFieldsEnm0 for options."
+    },
+    {
+     "name": "topic_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for Topic objects expanded via `expansions` (e.g., if `topic_ids` is expanded). See TopicFieldsEnm0 for options."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_SPACE_POSTS",
+   "title": "Retrieve posts from a space",
+   "description": "Retrieves Tweets that were shared/posted during a Twitter Space broadcast. IMPORTANT: This endpoint returns Tweets that participants explicitly shared during the Space session, NOT audio transcripts, comments, or reactions. Most Spaces have zero associated Tweets, so empty results (result_count=0) are normal and expected. Twitter Spaces are primarily audio conversations - this endpoint only returns text Tweets that were shared alongside the audio.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter Space. Can be extracted from Space URLs (e.g., '1nAKEEAgYvkKL' from https://x.com/i/spaces/1nAKEEAgYvkKL). Note: Most Spaces have zero associated Tweets since Spaces are primarily audio conversations."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to expand and include additional related objects in the response, such as author details or media attachments. Expanded objects are returned in the 'includes' section of the response."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of Tweets to fetch from the Space per request. Defaults to 100, which is also the maximum allowed."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of Poll fields to be included for polls, if 'attachments.poll_ids' is part of 'expansions'."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of User fields to be included for user objects, if 'author_id' or other user-related fields are part of 'expansions'."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of Media fields to be included for media content, if 'attachments.media_keys' is part of 'expansions'."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of Place fields to be included for geo-tagged Tweets, if 'geo.place_id' is part of 'expansions'."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of Tweet fields to be included in the response. By default, only 'id' and 'text' are returned for each Tweet."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_SPACES_BY_CREATORS",
+   "title": "Get spaces by creator IDs",
+   "description": "Retrieves Twitter Spaces created by a list of specified User IDs, with options to customize returned data fields.",
+   "params": [
+    {
+     "name": "user_ids",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "A list of User IDs whose Spaces will be retrieved. At least one User ID must be provided."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which related objects to expand for more detailed information in the response."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which fields to return for User objects, applicable when User-related IDs (e.g., 'creator_id') are included in 'expansions'."
+    },
+    {
+     "name": "space_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which fields to return for each Space object."
+    },
+    {
+     "name": "topic_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which fields to return for Topic objects, applicable when 'topic_ids' is included in 'expansions'."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_SPACES_BY_IDS",
+   "title": "Get space information by IDs",
+   "description": "Fetches detailed information for one or more Twitter Spaces (live, scheduled, or ended) by their unique IDs; at least one Space ID must be provided.",
+   "params": [
+    {
+     "name": "ids",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifiers for the Twitter Spaces to retrieve."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand and include their full details (e.g., 'creator_id', 'host_ids'). See `ExpansionsEnm0` for options."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific fields for User objects included via expansions (e.g., if 'creator_id' is in 'expansions'). See `UserFieldsEnm0` for options."
+    },
+    {
+     "name": "space_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific fields to return for each Space object; omits to return default fields. See `SpaceFieldsEnm0` for options."
+    },
+    {
+     "name": "topic_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific fields for Topic objects included via expansions (e.g., if 'topic_ids' is in 'expansions'). See `TopicFieldsEnm0` for options."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_SPACE_TICKET_BUYERS",
+   "title": "Fetch space ticket buyers list",
+   "description": "Retrieves a list of users who purchased tickets for a specific, valid, and ticketed Twitter Space.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Space for which to retrieve the list of ticket buyers."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand in the response for more detailed information (e.g., `pinned_tweet_id` to include the full Tweet object)."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of buyer records to return per page."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to include for each buyer, providing additional details. Refer to the User object schema for available fields."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields to include when Tweet objects are expanded. Refer to the Tweet object schema for available fields."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from a previous response to fetch the subsequent page of results."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_BY_ID",
+   "title": "Look up user by ID",
+   "description": "Retrieves detailed public information for a Twitter user by their ID, optionally expanding related data (e.g., pinned tweets) and specifying particular user or tweet fields to return.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique numeric identifier (ID) of an existing Twitter/X user. Must be a string of 1-19 digits (e.g., '44196397' for @elonmusk, '12' for @jack). Note: This must be the numeric user ID, NOT the @username handle."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Linked entities to expand (e.g., `pinned_tweet_id` for the full pinned Tweet). See `ExpansionsEnm0` for options."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which user attributes to return. See `UserFieldsEnm0` for options."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which tweet attributes to return for expanded tweets. See `TweetFieldsEnm0` for options."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_FOLLOWED_LISTS",
+   "title": "Get user's followed lists",
+   "description": "Returns metadata (not Tweets) for lists a specific Twitter user follows, optionally including expanded owner details.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the User whose followed lists are to be retrieved."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of objects to expand and include in the response. Use `owner_id` to include the User object of the list's owner. Refer to `ExpansionsEnm0` for available options."
+    },
+    {
+     "name": "list_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to include for each List object in the response. Refer to `ListFieldsEnm0` for all available fields."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of List results to be returned per page. Default is 100."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to include for each User object, applicable if `expansions` includes `owner_id`. Refer to `UserFieldsEnm0` for available fields."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token used to retrieve a specific page of results. This value is obtained from the `next_token` field in the `meta` object of a previous response. Use it to navigate through paginated results."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_LIST_MEMBERSHIPS",
+   "title": "Get a user's list memberships",
+   "description": "Retrieves a page of Twitter Lists a specified user is a member of, including public Lists and private Lists the authenticated user is authorized to view. Use the returned pagination token to retrieve further pages.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the target User whose List memberships are to be retrieved."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of objects to be expanded in the response, providing additional related data. For example, expanding `owner_id` includes the full User object for the list owner. Each item must be a value from `ExpansionsEnm0`."
+    },
+    {
+     "name": "list_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list specifying the desired fields to be returned for each List object. Each item in the list must be a value from `ListFieldsEnm0`. If omitted, default fields are returned."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Specifies the maximum number of List memberships to return in a single page. Valid range: 1-100. Default: 100."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list specifying the desired fields for User objects, applicable if `owner_id` is included in `expansions`. Each item in the list must be a value from `UserFieldsEnm0`. If omitted, default fields are returned for expanded User objects."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token for pagination, used to fetch a specific page of results. Obtain this from the `next_token` field in a previous response to get the next page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_MENTIONS",
+   "title": "Get user mentions",
+   "description": "Retrieves one page of posts that mention a selected X user.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Numeric ID of the mentioned user."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Latest post creation time to include, in RFC 3339 format."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Return posts newer than this numeric post ID."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Return posts older than this numeric post ID."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Related objects to expand into `includes`."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Earliest post creation time to include, in RFC 3339 format."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Posts to return in this page, from 5 through 100."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to include for expanded polls."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to include for expanded users."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to include for expanded media."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to include for expanded places."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Post fields to include in each returned post."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from `meta.next_token` for the next page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_OWNED_LISTS",
+   "title": "Get a user's owned lists",
+   "description": "Call this action to retrieve Lists created (owned) by a specific Twitter user, not Lists they follow or are subscribed to.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "User ID of the Twitter User whose owned Lists are to be retrieved."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Set to `['owner_id']` to include the User object of the List's owner."
+    },
+    {
+     "name": "list_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific fields to return for each List object (e.g., `created_at`, `description`)."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of List results per page. Allowed values: 1-100. Default: 100."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific fields for User objects if `expansions` includes `owner_id` (e.g., `public_metrics`, `created_at`)."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from `meta.next_token` of a previous response to fetch the next page. Omit for the first page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_PINNED_LISTS",
+   "title": "Get a user's pinned lists",
+   "description": "Retrieves the Lists a specific, existing Twitter user has pinned to their profile to highlight them.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the User whose pinned Lists are to be retrieved."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of object IDs to expand in the response, providing full details instead of just an ID. Select from `ExpansionsEnm0` to include related objects like the list owner."
+    },
+    {
+     "name": "list_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of List fields to return for each List object. Select desired fields from `ListFieldsEnm0`."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of User fields to return. This is applicable when `expansions` includes `owner_id`. Select desired fields from `UserFieldsEnm0`."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_POSTS",
+   "title": "Get user posts",
+   "description": "Retrieves posts authored by a selected X user.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Numeric ID of the user whose authored posts to retrieve."
+    },
+    {
+     "name": "exclude",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Post types to exclude."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Latest post creation time, on or after 2010-11-06."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Return posts newer than this numeric post ID."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Return posts older than this numeric post ID."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Related objects to expand."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Earliest post creation time, on or after 2010-11-06."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum posts to return on this page, from 5 through 100."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for expanded polls."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for expanded users."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for expanded media."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields for expanded places."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Post fields to include."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from meta.next_token for the next page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USER_PUBLIC_KEYS",
+   "title": "Get user public keys",
+   "description": "Returns an X user's registered public keys for X Chat encryption.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Numeric X user ID."
+    },
+    {
+     "name": "public_key_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Public-key fields to return."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_GET_USERS_BY_IDS",
+   "title": "Look up users by IDs",
+   "description": "Retrieves detailed information for specified X (formerly Twitter) user IDs, optionally customizing returned fields and expanding related entities.",
+   "params": [
+    {
+     "name": "ids",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "User IDs to retrieve (up to 100 per request). Accepts a list of ID strings (e.g., ['2244994945', '783214']) or a comma-separated string (e.g., '2244994945,783214')."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand in the response (e.g., 'pinned_tweet_id'). See ExpansionsEnm0 for options."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific user fields to return. See UserFieldsEnm0 for options."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields to return for expanded tweet objects. See TweetFieldsEnm0 for options."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_HIDE_REPLIES",
+   "title": "Set reply visibility",
+   "description": "Hides or unhides an existing reply Tweet. This action allows the authenticated user to hide or unhide a reply to a conversation they own (started). You can only hide replies to posts you authored. Note: Requires the tweet.moderate.write OAuth scope.",
+   "params": [
+    {
+     "name": "hidden",
+     "type": "boolean",
+     "required": true,
+     "enum": null,
+     "description": "Set to `true` to hide the reply, `false` to unhide."
+    },
+    {
+     "name": "tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifier of the reply Tweet to hide or unhide."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_INITIALIZE_MEDIA_UPLOAD",
+   "title": "Initialize Media Upload",
+   "description": "Initialize a media upload session for X/Twitter. Use this to start a chunked media upload process, which returns a media_id for subsequent APPEND and FINALIZE commands. Required for uploading large files or when using the chunked upload workflow.",
+   "params": [
+    {
+     "name": "shared",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Whether this media is shared or not. Optional parameter."
+    },
+    {
+     "name": "media_type",
+     "type": "string",
+     "required": true,
+     "enum": [
+      "video/mp4",
+      "video/webm",
+      "video/mp2t",
+      "video/quicktime",
+      "text/srt",
+      "text/vtt",
+      "image/jpeg",
+      "image/gif",
+      "image/bmp",
+      "image/png",
+      "image/webp",
+      "image/pjpeg",
+      "image/tiff",
+      "model/gltf-binary",
+      "model/vnd.usdz+zip"
+     ],
+     "description": "The MIME type of the media file to be uploaded (e.g., 'video/mp4', 'image/png'). This determines how Twitter processes the file."
+    },
+    {
+     "name": "total_bytes",
+     "type": "integer",
+     "required": true,
+     "enum": null,
+     "description": "The total size of the media file in bytes. Must be between 0 and 17179869184 (16 GB)."
+    },
+    {
+     "name": "media_category",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "amplify_video",
+      "tweet_gif",
+      "tweet_image",
+      "tweet_video",
+      "dm_gif",
+      "dm_image",
+      "dm_video",
+      "subtitles"
+     ],
+     "description": "Media category for upload"
+    },
+    {
+     "name": "additional_owners",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of user IDs to set as additional owners allowed to use the returned media_id in Tweets or Cards. Each user ID must be a string of 1-19 digits."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_LIST_CHAT_CONVERSATIONS",
+   "title": "List chat conversations",
+   "description": "Lists one page of X Chat conversations in the authenticated user's inbox.",
+   "params": [
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Conversation relationships to expand into the `includes` object."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Number of conversations to return in this page (1-100)."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to return for users included by an expansion."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Opaque pagination token from `meta.next_token` of a previous response."
+    },
+    {
+     "name": "chat_conversation_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Conversation fields to return."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_LIST_POST_LIKERS",
+   "title": "List post likers",
+   "description": "Retrieves users who have liked the Post (Tweet) identified by the provided ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Post (Tweet) for which to retrieve liking users."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to expand for related objects, like a user's pinned Tweet. Example: ['pinned_tweet_id']."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of user objects to return per page. The value must be between 1 and 100, inclusive. Defaults to 100 if not specified."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields to retrieve for each liking user. Example: ['created_at', 'description']."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet fields to retrieve for expanded Tweet objects (e.g., if `expansions` includes `pinned_tweet_id`). Example: ['created_at', 'public_metrics']."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token used to request the next page of results if more results are available. This token is returned in the `meta.next_token` field of a previous response."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_LIST_POSTS_TIMELINE_BY_LIST_ID",
+   "title": "List posts timeline by list ID",
+   "description": "Fetches the most recent Tweets posted by members of a specified Twitter List.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List from which to retrieve Tweets."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which related objects to expand and include in the response (e.g., author data, media details)."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of Tweets to return per request. Must be between 1 and 100."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which Poll object fields to include if 'attachments.poll_ids' is in 'expansions'."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which User object fields to include if 'author_id' or other user references are in 'expansions'."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which Media object fields to include if 'attachments.media_keys' is in 'expansions'."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which Place object fields to include if 'geo.place_id' is in 'expansions'."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which Tweet object fields to include in the response."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token used to request the next page of results if more Tweets are available. Obtained from the 'next_token' field in a previous response."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_MUTE_USER",
+   "title": "Mute user by ID",
+   "description": "Mutes a target user on behalf of an authenticated user, preventing the target's Tweets and Retweets from appearing in the authenticated user's home timeline without notifying the target.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The User ID of the authenticated user performing the mute action. If not provided, it will be automatically fetched from the authenticated session. Must match the authenticated user's ID."
+    },
+    {
+     "name": "target_user_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The User ID of the user to be muted."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_PIN_LIST",
+   "title": "Pin a list",
+   "description": "Pins a specified List to the authenticated user's profile, provided the List exists, the user has access rights, and the pin limit (typically 5 Lists) is not exceeded.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the authenticated User pinning the List."
+    },
+    {
+     "name": "list_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the List to be pinned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_POST_DELETE_BY_POST_ID",
+   "title": "Delete tweet",
+   "description": "Irreversibly deletes a specific Tweet by its ID; the Tweet may persist in third-party caches after deletion.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Tweet to be deleted. This ID must correspond to a Tweet authored by the authenticated user."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_POST_LOOKUP_BY_POST_ID",
+   "title": "Look up post by id",
+   "description": "Fetches comprehensive details for a single Tweet by its unique ID, provided the Tweet exists and is accessible.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique numeric identifier of the Tweet to retrieve. Must be a numeric string (1-19 digits). Common prefixes like 'tweet_' will be automatically stripped."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional data related to the Tweet to include, such as author details, mentioned users, or media information. Accepts a list of expansion names or a comma-separated string."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Poll attributes to include if poll objects are part of the Tweet or expansions. Accepts a list of field names or a comma-separated string."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User attributes to include for user objects (e.g., author, mentions) requested via expansions. Accepts a list of field names or a comma-separated string. NOTE: 'username' is a default field always returned by the API and is not a valid value for this parameter (it will be automatically filtered out if provided)."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Media attributes to include if media objects are part of the Tweet or expansions. Accepts a list of field names or a comma-separated string."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Place attributes to include if place objects are part of the Tweet or expansions. Accepts a list of field names or a comma-separated string."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet attributes to include for additional details about the Tweet. Accepts a list of field names or a comma-separated string."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_POST_LOOKUP_BY_POST_IDS",
+   "title": "Get tweets by IDs",
+   "description": "Retrieves detailed information for one or more Posts (Tweets) identified by their unique IDs, allowing selection of specific fields and expansions.",
+   "params": [
+    {
+     "name": "ids",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "A list of Post IDs to retrieve. Up to 100 IDs can be specified in a single request. Parameter can be provided as 'ids', 'tweet_ids', or 'post_ids'."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of fields to expand in the response for related entities like authors or media. Can be provided as a string (comma-separated) or a list."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of Poll fields to include for poll attachments. Can be provided as a string (comma-separated) or a list."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of User fields to include for user objects. Can be provided as a string (comma-separated) or a list."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of Media fields to include for media attachments. Can be provided as a string (comma-separated) or a list."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of Place fields to include for geo-tagged Tweets. Can be provided as a string (comma-separated) or a list."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma-separated list of Tweet fields to include in the response. Can be provided as a string (comma-separated) or a list."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_RECENT_SEARCH",
+   "title": "Search recent tweets",
+   "description": "Searches Tweets from the last seven days using X query syntax, with optional fields, expansions, sorting, and time or ID bounds. Timestamp and ID bounds cannot be combined in the same request. Requests for more than 100 results are automatically paginated up to 2,000; use the returned next token to continue when more results are available.",
+   "params": [
+    {
+     "name": "query",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "REQUIRED. Search query for matching Tweets (last 7 days only; use Full Archive Search for older).  Each OR-separated clause independently needs >=1 positive term (keyword, hashtag, from:user) AND >=1 standalone operator - e.g. 'from:user OR is:reply' is invalid; 'from:user -is:retweet' is valid.  Operators: keywords=implicit AND; OR uppercase; from:/to:username (no @, case-insensitive); $cashtags; lang:xx (valid: am, ar, bg, bn, ca, cs, da, de, el, en, es, et, fi, fr, gu, he, hi, hr, hu, id, it, ja, kn, ko, lt, lv, ml, mr, ms, nl, no, pa, pl, pt, ro, ru, sk, sl, sr, sv, ta, te, th, tr, uk, ur, vi, zh; 'auto' auto-removed). Need a keyword/from:/to:/hashtag partner in-clause: -is:retweet, -is:reply, -is:quote, is:retweet, is:reply, is:quote, has:video/images/links/media, referenced_tweet:id, lang:en (has:*/referenced_tweet: may need elevated access - remove on error).  Auto-removed: min_retweets, min_faves, site:, lang:auto, since:, until: (use start_time/end_time). Lowercase 'and' is auto-quoted literally."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Newest UTC timestamp (YYYY-MM-DDTHH:mm:ssZ) for results; exclusive. IMPORTANT: Cannot be used with `since_id` or `until_id` - these are mutually exclusive time range filters."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns Tweets more recent than this ID. IMPORTANT: Cannot be used with `start_time` or `end_time` - these are mutually exclusive time range filters."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns Tweets older than this ID. IMPORTANT: Cannot be used with `start_time` or `end_time` - these are mutually exclusive time range filters."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Expansions to include additional objects like users, media, polls, etc."
+    },
+    {
+     "name": "next_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from `meta.next_token` of a previous response for pagination; do not modify."
+    },
+    {
+     "name": "sort_order",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "recency",
+      "relevancy"
+     ],
+     "description": "Order of results: 'recency' (most recent first) or 'relevancy'."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Oldest UTC timestamp (YYYY-MM-DDTHH:mm:ssZ) for results. Must be within last 7 days. For last N hours, calculate from current time (e.g., now-12h = 2025-10-06T03:00:00Z if now is 15:00). IMPORTANT: Cannot be used with `since_id` or `until_id` - these are mutually exclusive time range filters."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Number of results to return. Twitter API enforces minimum of 10 (values below 10 are auto-adjusted to 10). Maximum 100 per call (automatically paginates internally for higher values up to 2000). If more results exist beyond 2000, check `meta.has_more` from the response and pass `meta.next_token` to `pagination_token` in a new call to continue from that point."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Poll fields to include when poll IDs are expanded."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional user object fields to include when user IDs are expanded via expansions. Note: 'id', 'name', and 'username' are always returned by default and should not be requested."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Media fields to include when media keys are expanded."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Place fields to include when place IDs are expanded."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional tweet object fields to include in the response."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Alternative pagination token from a previous `meta.next_token`; `next_token` is preferred if both are provided."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_REMOVE_LIST_MEMBER",
+   "title": "Remove a list member",
+   "description": "Removes a user from a Twitter List; the response `is_member` field will be `false` if removal was successful or the user was not a member, and the updated list of members is not returned.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List from which a member will be removed."
+    },
+    {
+     "name": "user_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier (ID) of the Twitter user to be removed from the specified List."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_REMOVE_POST_FROM_BOOKMARKS",
+   "title": "Remove a bookmarked post",
+   "description": "Removes a Tweet, specified by `tweet_id`, from the authenticated user's bookmarks; the Tweet must have been previously bookmarked by the user for the action to have an effect.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The Twitter user ID of the currently authenticated user. This parameter is optional - if not provided, it will be automatically retrieved from the authenticated user's profile. If provided, it MUST match the authenticated user's own Twitter user ID (not a tweet ID or another user's ID). You can find your user ID by using the User Lookup Me endpoint."
+    },
+    {
+     "name": "tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the Tweet to be removed from the user's bookmarks."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_RETRIEVE_DM_CONVERSATION_EVENTS",
+   "title": "Retrieve DM conversation events",
+   "description": "Retrieves Direct Message (DM) events for a specific conversation ID on Twitter, useful for analyzing messages and participant activities.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The DM Conversation ID. For one-on-one conversations, use the format 'USER_ID_1-USER_ID_2' (e.g., '123456789-987654321') where both are numeric user IDs. For group conversations, use a single 15-19 digit numeric ID (e.g., '123456789012345')."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of fields to expand."
+    },
+    {
+     "name": "event_types",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "The set of event_types to include in the results."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of results."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of User fields to display."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of Media fields to display."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of Tweet fields to display."
+    },
+    {
+     "name": "dm_event_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A comma separated list of DmEvent fields to display."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "This parameter is used to get a specified \"page\" of results."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_RETRIEVE_POSTS_THAT_QUOTE_A_POST",
+   "title": "Retrieve posts that quote a post",
+   "description": "Retrieves Tweets that quote a specified Tweet, requiring a valid Tweet ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Unique identifier of the Tweet whose quoting Tweets you would like to retrieve."
+    },
+    {
+     "name": "exclude",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies whether to exclude replies or retweets from the results."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to expand in the response, such as 'author_id' to include the author's user object."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of results to return per page (range: 10-100)."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Poll fields to include in the response if poll objects are present."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific User fields to include if user objects are present (e.g., through expansions)."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Media fields to include in the response if media objects are present."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Place fields to include in the response if place objects are present."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Tweet fields to include in the response."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token for retrieving a specific page of results, typically the `next_token` from a previous response."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_RETURNS_POST_OBJECTS_LIKED_BY_THE_PROVIDED_USER_ID",
+   "title": "Retrieve liked tweets by user ID",
+   "description": "Retrieves Tweets liked by a specified Twitter user, provided their liked tweets are public or accessible.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Twitter user ID whose liked Tweets are to be retrieved."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand, e.g., `author_id`, `attachments.media_keys`, for richer data."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum liked Tweets per page."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Poll fields to include when `attachments.poll_ids` is in `expansions`."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User fields for Tweet authors or other user objects when `expansions` includes them."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Media fields to include when `attachments.media_keys` is in `expansions`."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Place fields to include when `geo.place_id` is in `expansions`."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Tweet fields to include. API provides a default set if omitted."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from a previous response to fetch the next page."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_RETWEET_POST",
+   "title": "Retweet post",
+   "description": "Retweets a Tweet for the authenticated user. The user ID is automatically fetched from the authenticated session - you only need to provide the tweet_id to retweet.",
+   "params": [
+    {
+     "name": "tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the Tweet to be retweeted."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_SEARCH_FULL_ARCHIVE_COUNTS",
+   "title": "Get full archive search counts",
+   "description": "Returns a count of Tweets from the full archive that match a specified query, aggregated by day, hour, or minute; `start_time` must be before `end_time` if both are provided, and `since_id`/`until_id` cannot be used with `start_time`/`end_time`.",
+   "params": [
+    {
+     "name": "query",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Search query for matching Tweets using Twitter's V2 filtering syntax (see official Twitter API documentation for syntax and length)."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Newest UTC timestamp (exclusive, YYYY-MM-DDTHH:mm:ssZ) to count Tweets up to. Must be at least 10 seconds prior to the request time. If specified, `start_time` is also required and `end_time` must be later."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Count Tweets more recent than this ID. Cannot be used with `start_time` or `end_time`."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Count Tweets older than this ID. Cannot be used with `start_time` or `end_time`."
+    },
+    {
+     "name": "next_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from a previous response to fetch the next page of results. Use as-is."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Oldest UTC timestamp (inclusive, YYYY-MM-DDTHH:mm:ssZ) to count Tweets from. If specified, `end_time` is also required and `start_time` must be earlier."
+    },
+    {
+     "name": "granularity",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "day",
+      "hour",
+      "minute"
+     ],
+     "description": "Time period granularity for aggregating search count results."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Pagination token, typically `next_token` in Twitter API v2. Use as-is."
+    },
+    {
+     "name": "search_count_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies which fields to return for each search count object; default fields are returned if unspecified."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_SEARCH_NEWS",
+   "title": "Search X news",
+   "description": "Searches X for AI-generated news stories matching text.",
+   "params": [
+    {
+     "name": "query",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Text query used to match X news stories."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum number of news stories to return (1-100)."
+    },
+    {
+     "name": "news_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "News fields to return."
+    },
+    {
+     "name": "max_age_hours",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Maximum age in hours of matching news stories (1-720)."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_SEARCH_RECENT_COUNTS",
+   "title": "Fetch recent tweet counts",
+   "description": "Retrieves the count of Tweets matching a specified search query within the last 7 days, aggregated by 'minute', 'hour', or 'day'.",
+   "params": [
+    {
+     "name": "query",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "A search query rule to match against Tweets. For example, '#twitterdev OR @twitterapi'. Refer to Twitter's documentation for query syntax and maximum length: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query"
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "OPTIONAL: The newest UTC timestamp (exclusive) to which to count Tweets. Must be in ISO 8601 format: YYYY-MM-DDTHH:mm:ssZ. Must be within the last 7 days. If omitted, defaults to now (minus 30 seconds). Do NOT pass placeholder values like '<DATE_TIME>' - either provide a valid timestamp or omit entirely."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns counts for Tweets created more recently than the specified Tweet ID. This helps to paginate results chronologically."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns counts for Tweets created older than the specified Tweet ID. This helps to paginate results chronologically."
+    },
+    {
+     "name": "next_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token obtained from a previous response to fetch the next page of results. Do not modify this value."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "OPTIONAL: The oldest UTC timestamp (inclusive) from which to count Tweets. Must be in ISO 8601 format: YYYY-MM-DDTHH:mm:ssZ. Must be within the last 7 days. If omitted, defaults to 7 days ago. Do NOT pass placeholder values like '<DATE_TIME>' - either provide a valid timestamp or omit entirely."
+    },
+    {
+     "name": "granularity",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "day",
+      "hour",
+      "minute"
+     ],
+     "description": "The time period granularity for aggregating search counts."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "A token used for pagination to retrieve the next set of results. This value is obtained from the 'next_token' field in a previous response."
+    },
+    {
+     "name": "search_count_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of fields to include in each search count object. Available fields: 'end', 'start', 'tweet_count'. If unspecified, default fields are returned."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_SEARCH_SPACES",
+   "title": "Search for spaces",
+   "description": "Searches for Twitter Spaces by a textual query, optionally filtering by state (live, scheduled, all) to discover audio conversations.",
+   "params": [
+    {
+     "name": "query",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The text query to search for in Space titles and descriptions."
+    },
+    {
+     "name": "state",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "all",
+      "live",
+      "scheduled"
+     ],
+     "description": "Filters Spaces by their state (e.g., 'live', 'scheduled')."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies fields to expand and include additional related objects (e.g., 'creator_id' for User object, 'host_ids', 'invited_user_ids', 'speaker_ids', 'topic_ids')."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "The maximum number of Space results to return in a single response. Values must be between 1 and 100, inclusive."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies fields for expanded User objects (e.g., 'username', 'public_metrics'). Omitting this returns a default set of User fields."
+    },
+    {
+     "name": "space_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies fields to include for each Space object (e.g., 'id', 'title'). Omitting this returns a default set of fields."
+    },
+    {
+     "name": "topic_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specifies fields for expanded Topic objects (e.g., 'id', 'name'). Omitting this returns a default set of Topic fields."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_SEND_A_NEW_MESSAGE_TO_A_USER",
+   "title": "Send a new message to a user",
+   "description": "Sends a new Direct Message with text and/or media (media_id for attachments must be pre-uploaded) to a specified Twitter user; this creates a new DM and does not modify existing messages.",
+   "params": [
+    {
+     "name": "text",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Text content of the Direct Message."
+    },
+    {
+     "name": "attachments",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Media attachments for the Direct Message."
+    },
+    {
+     "name": "participant_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "User ID of the recipient."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_SEND_DM_TO_CONVERSATION",
+   "title": "Send a new message to a DM conversation",
+   "description": "Sends a message, with optional text and/or media attachments (using pre-uploaded `media_id`s), to a specified Twitter Direct Message conversation.",
+   "params": [
+    {
+     "name": "text",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Text content of the Direct Message. At least one of `text` or `attachments` is required."
+    },
+    {
+     "name": "attachments",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of media attachments for the Direct Message, each specifying a `media_id`. At least one of `text` or `attachments` is required."
+    },
+    {
+     "name": "dm_conversation_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Identifier of the DM conversation; can be a numeric string (group DM) or two user IDs hyphen-separated (one-on-one DM)."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_STREAM_POST_LABELS",
+   "title": "Get tweets label stream",
+   "description": "Stream real-time Tweet label events (apply/remove). Requires Enterprise access and App-Only OAuth 2.0 auth. Returns PublicTweetNotice or PublicTweetUnviewable events. 403 errors indicate missing Enterprise access or wrong auth type.",
+   "params": [
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Latest UTC timestamp (YYYY-MM-DDTHH:mm:ssZ) at which the stream will automatically close, ceasing event transmission."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Earliest UTC timestamp (YYYY-MM-DDTHH:mm:ssZ) from which to start streaming label events; disregards `backfill_minutes` if provided."
+    },
+    {
+     "name": "backfill_minutes",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Number of minutes of historical data (labels applied or removed) to stream upon connection for recent activity; ignored if `start_time` is provided. Valid values: 0-5."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UNFOLLOW_LIST",
+   "title": "Unfollow a list",
+   "description": "Enables a user (via `id`) to unfollow a specific Twitter List (via `list_id`), which removes its tweets from their timeline and stops related notifications; the action reports `following: false` on success, even if the user was not initially following the list.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the user who is unfollowing the list."
+    },
+    {
+     "name": "list_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the Twitter List to be unfollowed."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UNFOLLOW_USER",
+   "title": "Unfollow user",
+   "description": "Allows the authenticated user to unfollow an existing Twitter user (`target_user_id`), which removes the follow relationship. The source user ID is automatically determined from the authenticated session.",
+   "params": [
+    {
+     "name": "source_user_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The user ID of the authenticated user initiating the unfollow action. If not provided, it will be automatically fetched from the authenticated session. Note: This parameter is automatically populated and should not be set manually."
+    },
+    {
+     "name": "target_user_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The user ID of the user to unfollow. Alternatively, you can pass 'user_id' which will be treated as the target user ID."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UNLIKE_POST",
+   "title": "Unlike post",
+   "description": "Allows an authenticated user (`id`) to remove their like from a specific post (`tweet_id`); the action is idempotent and completes successfully even if the post was not liked.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the authenticated user who is unliking the post. This user ID must match the user context of the authentication token."
+    },
+    {
+     "name": "tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The ID of the post (Tweet) that the user is requesting to unlike."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UNMUTE_USER",
+   "title": "Unmute a user by user ID",
+   "description": "Unmutes a target user for the authenticated user, allowing them to see Tweets and notifications from the target user again. The source_user_id is automatically populated from the authenticated user's credentials.",
+   "params": [
+    {
+     "name": "target_user_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "User ID of the user to be unmuted."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UNPIN_LIST",
+   "title": "Unpin a list",
+   "description": "Unpins a List (specified by list_id) from the authenticated user's profile. The user ID is automatically retrieved if not provided.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The authenticated user's ID. This parameter is optional - if not provided, it will be automatically retrieved from the authenticated user's context. If provided, it MUST match the authenticated user's ID (you cannot unpin lists from other users' profiles)."
+    },
+    {
+     "name": "list_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "ID of the List to unpin from the authenticated user's profile."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UNRETWEET_POST",
+   "title": "Unretweet post",
+   "description": "Removes a user's retweet of a specified Post, if the user had previously retweeted it.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The ID of the authenticated user making this request. If omitted, it is automatically resolved from the authenticated session. You can only remove your own retweets, not someone else's."
+    },
+    {
+     "name": "source_tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Post (Tweet) that the user is requesting to unretweet."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UPDATE_LIST",
+   "title": "Update list attributes",
+   "description": "Updates an existing Twitter List's name, description, or privacy status, requiring the List ID and at least one mutable property.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Twitter List to be updated."
+    },
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "New name for the List; must be a non-empty string if provided."
+    },
+    {
+     "name": "private",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Controls the visibility of the List: `True` for private, `False` for public."
+    },
+    {
+     "name": "description",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "New description for the List; an empty string clears the existing description."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UPLOAD_LARGE_MEDIA",
+   "title": "Upload Large Media",
+   "description": "Uploads a single media file to X/Twitter using simple or chunked upload based on its category and size. For chunked uploads, it polls pending processing and raises an error if processing fails or polling times out.",
+   "params": [
+    {
+     "name": "media",
+     "type": "object",
+     "required": true,
+     "enum": null,
+     "description": "The media file to upload. Supported mimetypes: video/mp4, video/webm, image/gif, image/jpeg, image/png, image/webp. If mimetype is generic (e.g., application/octet-stream), it will be inferred from the media_category or file extension."
+    },
+    {
+     "name": "shared",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Whether this media is shared or not. Optional parameter."
+    },
+    {
+     "name": "media_category",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "tweet_image",
+      "tweet_gif",
+      "tweet_video",
+      "amplify_video"
+     ],
+     "description": "Media category for the upload. Valid values: tweet_image, tweet_gif, tweet_video, amplify_video. Optional; auto-detected from mimetype or file extension when omitted. Required for videos > 140 seconds or ads campaigns (use amplify_video). For standard uploads: tweet_video for videos, tweet_gif for animated GIFs, tweet_image for images."
+    },
+    {
+     "name": "additional_owners",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of user IDs to set as additional owners allowed to use the returned media_id in Tweets or Cards. Each user ID must be a string of 1-19 digits."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_UPLOAD_MEDIA",
+   "title": "Upload Media",
+   "description": "Uploads one image or subtitle file under 5 MiB to X/Twitter using the v2 API, with tweet_image, dm_image, or subtitles categories. The returned media identifier expires; the response includes its expiry interval.",
+   "params": [
+    {
+     "name": "media",
+     "type": "object",
+     "required": true,
+     "enum": null,
+     "description": "The media file to upload. This action only supports images. For GIFs, videos, or any file larger than ~5 MB, use 'TWITTER_UPLOAD_LARGE_MEDIA' instead. Must include a valid mimetype (e.g., image/jpeg, image/png); incorrect or missing mimetype causes validation errors or misclassification."
+    },
+    {
+     "name": "shared",
+     "type": "boolean",
+     "required": false,
+     "enum": null,
+     "description": "Whether this media is shared or not. Optional parameter."
+    },
+    {
+     "name": "media_type",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The MIME type of the media being uploaded. Required for subtitle uploads. Examples: 'text/srt' for SRT subtitles, 'text/vtt' for VTT subtitles, 'image/jpeg' for JPEG images, 'image/png' for PNG images."
+    },
+    {
+     "name": "media_category",
+     "type": "string",
+     "required": false,
+     "enum": [
+      "tweet_image",
+      "dm_image",
+      "subtitles"
+     ],
+     "description": "Media category for upload (v2 API)  Note: The v2 media upload endpoint only supports these three categories. For videos and GIFs, use TWITTER_UPLOAD_LARGE_MEDIA instead."
+    },
+    {
+     "name": "additional_owners",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of user IDs to set as additional owners allowed to use the returned media_id in Tweets or Cards. Each user ID must be a string of 1-19 digits."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_USER_HOME_TIMELINE_BY_USER_ID",
+   "title": "Get user reverse chronological timeline",
+   "description": "Retrieves the authenticated Twitter user's reverse chronological home timeline, including posts from followed accounts and the user's own posts. The user ID is fetched automatically when omitted; a supplied ID that differs from the authenticated user's ID is replaced with the authenticated ID.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "The numeric Twitter user ID of the authenticated user. OPTIONAL: If not provided, it will be automatically fetched. This endpoint only works for the authenticated user's own timeline, so providing another user's ID will result in an error. Must be a numeric string (1-19 digits) matching pattern ^[0-9]{1,19}$."
+    },
+    {
+     "name": "exclude",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet types to exclude from results. Accepts either a list ['replies', 'retweets'] or a comma-separated string 'replies,retweets'."
+    },
+    {
+     "name": "end_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Latest UTC timestamp for Tweets in RFC3339 format (YYYY-MM-DDTHH:mm:ssZ). Must use second granularity with Z timezone notation. Overridden by `until_id`."
+    },
+    {
+     "name": "since_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns results with a Tweet ID more recent than the specified ID. Takes precedence over `start_time`."
+    },
+    {
+     "name": "until_id",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Returns results with a Tweet ID older than the specified ID. Takes precedence over `end_time`."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Objects to expand and include in the response for detailed information. Accepts either a list ['author_id', 'attachments.media_keys'] or a comma-separated string 'author_id,attachments.media_keys'."
+    },
+    {
+     "name": "start_time",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Earliest UTC timestamp for Tweets in RFC3339 format (YYYY-MM-DDTHH:mm:ssZ). Must use second granularity with Z timezone notation. Overridden by `since_id`."
+    },
+    {
+     "name": "max_results",
+     "type": "integer",
+     "required": false,
+     "enum": null,
+     "description": "Number of tweets to return (up to 2000 per call). Automatically paginates internally. If more results exist beyond 2000, check `meta.has_more` from the tool response and pass `meta.next_token` to `pagination_token` in a new call to continue from that point."
+    },
+    {
+     "name": "poll_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Poll fields for poll objects, if `expansions` includes `attachments.poll_ids`. Accepts either a list ['duration_minutes', 'options'] or a comma-separated string 'duration_minutes,options'."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional user object fields to include in the response, if `expansions` includes user-related items like `author_id`. Accepts either a list ['public_metrics', 'created_at'] or a comma-separated string 'public_metrics,created_at'."
+    },
+    {
+     "name": "media_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Media fields for media objects, if `expansions` includes `attachments.media_keys`. Accepts either a list ['url', 'preview_image_url'] or a comma-separated string 'url,preview_image_url'."
+    },
+    {
+     "name": "place_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Place fields for place objects, if `expansions` includes `geo.place_id`. Accepts either a list ['full_name', 'country_code'] or a comma-separated string 'full_name,country_code'."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Specific Tweet fields to include in the response. Accepts either a list ['created_at', 'public_metrics'] or a comma-separated string 'created_at,public_metrics'."
+    },
+    {
+     "name": "pagination_token",
+     "type": "string",
+     "required": false,
+     "enum": null,
+     "description": "Token from a previous response to fetch the next page of results."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_USER_LIKE_POST",
+   "title": "Like a tweet",
+   "description": "Likes a specific, accessible Tweet for the authenticated user, provided neither user has blocked the other and the user is not restricted from liking. The request requires a user ID and Tweet ID; the authenticated user ID is fetched for the operation.",
+   "params": [
+    {
+     "name": "id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The numeric user ID of the authenticated user performing the like. MUST match the currently authenticated user's ID (use TWITTER_USER_LOOKUP_ME to retrieve it). Must be a numeric string (1-19 digits)."
+    },
+    {
+     "name": "tweet_id",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "The unique identifier of the Tweet to be liked."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_USER_LOOKUP_BY_USERNAME",
+   "title": "Look up user by username",
+   "description": "Fetches public profile information for a valid and existing Twitter user by their username, optionally expanding related data like pinned Tweets; results may be limited for protected profiles not followed by the authenticated user.",
+   "params": [
+    {
+     "name": "username",
+     "type": "string",
+     "required": true,
+     "enum": null,
+     "description": "Twitter username (handle), without '@'. Must match ^[A-Za-z0-9_]{1,15}$ (letters, numbers, underscore only; 1\u201315 chars). Leading '@' is ignored. Note: This endpoint accepts only a single username. For batch lookup of multiple usernames, use USER_LOOKUP_BY_USERNAMES action."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to expand for more detailed information on objects like `pinned_tweet_id` (includes full Tweet object)."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional user object fields to include in the response. Note: 'id', 'name', and 'username' are always returned by default for user objects and should not be specified here."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Additional tweet object fields to include for Tweets returned via expansions (e.g., `pinned_tweet_id`). Note: 'id' and 'text' are always returned by default for tweet objects and should not be specified here."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_USER_LOOKUP_BY_USERNAMES",
+   "title": "Look up users by username",
+   "description": "Retrieves detailed information for 1 to 100 Twitter users by their usernames (each 1-15 alphanumeric characters/underscores), allowing customizable user/tweet fields and expansion of related data like pinned tweets.",
+   "params": [
+    {
+     "name": "usernames",
+     "type": "array",
+     "required": true,
+     "enum": null,
+     "description": "A list of Twitter/X usernames (handles) to look up (1-100 usernames). Valid Twitter usernames contain only letters (A-Z), numbers (0-9), and underscores (_), with a maximum length of 15 characters (pattern: ^[A-Za-z0-9_]{1,15}$). Leading '@' symbols are automatically stripped. Space-separated strings within a single element will be split into multiple usernames. Invalid usernames will result in errors from the API."
+    },
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of objects to expand in the response, providing more detailed information. For example, 'pinned_tweet_id' will include the full Tweet object for a user's pinned Tweet."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of user fields to include in the response. By default, the API returns 'id', 'name', and 'username' fields. Specify additional fields here to include them in the response."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "A list of tweet fields to include in the response if 'expansions' includes 'pinned_tweet_id'. These fields provide additional information about the pinned tweet."
+    }
+   ]
+  },
+  {
+   "slug": "TWITTER_USER_LOOKUP_ME",
+   "title": "Get authenticated user",
+   "description": "Returns profile information for the currently authenticated X user, customizable via request fields.",
+   "params": [
+    {
+     "name": "expansions",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Fields to expand for related entities. ONLY 'pinned_tweet_id' is valid for user lookup endpoints. This returns the user's pinned Tweet in the includes.tweets array. Do NOT use tweet expansions like 'author_id' or 'referenced_tweets.id' - those are not valid for this endpoint. Note: 'affiliation' and 'most_recent_tweet_id' are user fields, not expansions."
+    },
+    {
+     "name": "user_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "User attributes to include in the response. Valid values: affiliation, connection_status, created_at, description, entities, id, location, most_recent_tweet_id, name, pinned_tweet_id, profile_banner_url, profile_image_url, protected, public_metrics, receives_your_dm, subscription_type, url, username, verified, verified_type, withheld. Note: id, name, and username are returned by default."
+    },
+    {
+     "name": "tweet_fields",
+     "type": "array",
+     "required": false,
+     "enum": null,
+     "description": "Tweet attributes to include when using expansions=pinned_tweet_id. Only used to get additional fields for the expanded pinned tweet. Valid values include: id, text, created_at, public_metrics, author_id, entities, etc."
+    }
+   ]
+  }
+ ]
+}
