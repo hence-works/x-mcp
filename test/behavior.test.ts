@@ -156,3 +156,63 @@ describe('X failures surface as redacted result-level errors', () => {
     }
   });
 });
+
+describe('lists, bookmarks and relationships', () => {
+  it('requires an OAuth 2.0 user token for bookmark writes (OAuth 1.0a is not accepted by X)', async () => {
+    const h = await connectHarness(queued([]), {
+      env: { X_API_KEY: 'k', X_API_SECRET: 's', X_ACCESS_TOKEN: 't', X_ACCESS_TOKEN_SECRET: 'ts' },
+    });
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_ADD_POST_TO_BOOKMARKS', arguments: { id: '1', tweet_id: '2' } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'auth_not_configured' } });
+      expect(h.requests).toHaveLength(0);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('refuses an empty list update', async () => {
+    const h = await connectHarness(queued([]));
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_UPDATE_LIST', arguments: { id: '1' } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'invalid_input' } });
+      expect(h.requests).toHaveLength(0);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('walks pages with pagination.next_token until it is absent', async () => {
+    const h = await connectHarness(
+      queued([
+        { body: { data: [{ id: '1' }], meta: { result_count: 1, next_token: 'PAGE2TOKEN000000' } } },
+        { body: { data: [{ id: '2' }], meta: { result_count: 1, previous_token: 'PAGE1TOKEN000000' } } },
+      ]),
+    );
+    try {
+      const first = await h.mcp.callTool({ name: 'TWITTER_FOLLOWERS_BY_USER_ID', arguments: { id: '7', max_results: 1 } });
+      const token = (first.structuredContent as { pagination?: { next_token?: string } }).pagination?.next_token;
+      expect(token).toBe('PAGE2TOKEN000000');
+      const second = await h.mcp.callTool({
+        name: 'TWITTER_FOLLOWERS_BY_USER_ID',
+        arguments: { id: '7', max_results: 1, pagination_token: token },
+      });
+      expect(second.structuredContent).toMatchObject({ pagination: { previous_token: 'PAGE1TOKEN000000' } });
+      expect((second.structuredContent as { pagination: object }).pagination).not.toHaveProperty('next_token');
+      expect(h.requests[1]!.url.searchParams.get('pagination_token')).toBe('PAGE2TOKEN000000');
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('propagates a failed /2/users/me lookup as the tool error', async () => {
+    const h = await connectHarness(queued([{ status: 403, body: { title: 'Forbidden', detail: 'app not attached to a project' } }]));
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_UNMUTE_USER', arguments: { target_user_id: '5' } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'http_error', status: 403 } });
+      expect(h.requests).toHaveLength(1);
+    } finally {
+      await h.close();
+    }
+  });
+});
