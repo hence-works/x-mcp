@@ -225,3 +225,17 @@ describe('media reader', () => {
     await expect(reader.load({ base64: 'AA==', path: 'x' })).rejects.toThrow(/exactly one/);
   });
 });
+
+describe('redaction safety', () => {
+  it('never corrupts payload structure, even with short or JSON-like credential values', () => {
+    const config = testConfig({ X_API_KEY: 't', X_API_SECRET: 'error', X_ACCESS_TOKEN: 'type', X_ACCESS_TOKEN_SECRET: 'long-secret-value-123' });
+    const result = errorResult(
+      new XApiError('http_error', 'failed with long-secret-value-123', { status: 400, detail: 'type error' }),
+      createRedactor(config),
+    );
+    expect(result.structuredContent).toEqual({
+      error: { type: 'http_error', message: 'failed with [REDACTED]', status: 400, detail: 'type error' },
+    });
+    expect(JSON.parse((result.content[0] as { text: string }).text)).toEqual(result.structuredContent);
+  });
+});

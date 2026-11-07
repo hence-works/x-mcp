@@ -21,9 +21,14 @@ export interface ServerDeps {
   log?: Logger;
 }
 
-/** Scrubs configured secrets and credential-looking substrings from text. */
+/** Configured values shorter than this are not literal-matched: they would corrupt ordinary text. */
+const MIN_REDACTABLE_SECRET = 8;
+
+/** Scrubs configured secrets and credential-looking substrings from a string. */
 export function createRedactor(config: ServerConfig): (text: string) => string {
-  const secrets = secretValues(config.credentials).sort((a, b) => b.length - a.length);
+  const secrets = secretValues(config.credentials)
+    .filter((s) => s.length >= MIN_REDACTABLE_SECRET)
+    .sort((a, b) => b.length - a.length);
   return (text) => {
     let out = text;
     for (const secret of secrets) out = out.split(secret).join('[REDACTED]');
@@ -31,6 +36,16 @@ export function createRedactor(config: ServerConfig): (text: string) => string {
       .replace(/(Bearer\s+)[A-Za-z0-9._~+/=%-]{8,}/gi, '$1[REDACTED]')
       .replace(/(oauth_[a-z_]+=")[^"]*"/gi, '$1[REDACTED]"');
   };
+}
+
+/** Applies `redact` to every string value (never to keys), preserving structure. */
+export function redactDeep<T>(value: T, redact: (text: string) => string): T {
+  if (typeof value === 'string') return redact(value) as T;
+  if (Array.isArray(value)) return value.map((v) => redactDeep(v, redact)) as T;
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, redactDeep(v, redact)])) as T;
+  }
+  return value;
 }
 
 export function successResult(payload: ToolSuccess): CallToolResult {
@@ -75,11 +90,11 @@ export function errorResult(error: unknown, redact: (text: string) => string): C
   } else {
     payload = { error: { type: 'internal_error', message: 'The tool failed unexpectedly; see server diagnostics.' } };
   }
-  const text = redact(JSON.stringify(payload));
+  const structured = redactDeep(JSON.parse(JSON.stringify(payload)) as Record<string, unknown>, redact);
   return {
     isError: true,
-    content: [{ type: 'text', text }],
-    structuredContent: JSON.parse(text) as Record<string, unknown>,
+    content: [{ type: 'text', text: JSON.stringify(structured) }],
+    structuredContent: structured,
   };
 }
 
