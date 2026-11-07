@@ -1,6 +1,7 @@
 import type { ToolDefinition } from './framework.js';
+import { postTools, userTools } from './posts.js';
 
-/** Every registered tool, in scope order. Scope modules are added as they are implemented. */
+/** Every registered tool, in scope order. */
 export function allTools(): ToolDefinition[] {
-  return [];
+  return [...postTools, ...userTools];
 }

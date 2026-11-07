@@ -82,8 +82,11 @@ export interface HttpToolSpec<S extends z.ZodRawShape> {
   input: S;
   /** Overrides for parameter placement; defaults are inferred (see `placeParam`). */
   params?: Partial<Record<keyof S & string, ParamSpec>>;
-  /** Path parameters that default to the authenticated user's id when omitted or `me`. */
-  meParams?: readonly (keyof S & string)[];
+  /**
+   * Path parameters that default to the authenticated user's id when omitted or `me`
+   * (may name a path parameter that is not an input at all).
+   */
+  meParams?: readonly string[];
   /** Constant query parameters, e.g. `command=STATUS`. */
   constQuery?: Record<string, string>;
   /** Cross-field validation that a flat Zod object cannot express (throws invalidInput). */
@@ -193,7 +196,7 @@ export async function buildHttpRequest<S extends z.ZodRawShape>(
 }
 
 export function httpTool<S extends z.ZodRawShape>(spec: HttpToolSpec<S>): ToolDefinition {
-  const schema = z.object(spec.input);
+  const schema = z.strictObject(spec.input);
   return {
     name: spec.name,
     title: spec.title,
