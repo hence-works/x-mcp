@@ -1,0 +1,6233 @@
+{
+  "schema_version": 1,
+  "baseline": {
+    "provider": "composio",
+    "toolkit": "TWITTER",
+    "version": "20261101_00",
+    "source": "https://docs.composio.dev/toolkits/twitter.md",
+    "retrieved": "2026-11-07",
+    "tool_count": 84
+  },
+  "x_api": {
+    "openapi_title": "X API v2",
+    "openapi_version": "2.174",
+    "source": "https://api.x.com/2/openapi.json",
+    "rate_limits_source": "https://docs.x.com/x-api/fundamentals/rate-limits.md"
+  },
+  "global_discrepancies": [
+    "X OpenAPI 2.174 names the post field-selection parameter `post.fields` (PostFieldsParameter) on most endpoints, while docs.x.com/x-api/fundamentals/fields, inline stream parameters in the same spec, and Composio use `tweet.fields`. This server sends `tweet.fields` (documented wire name); unverified against the live API.",
+    "X uses pay-per-usage pricing (docs.x.com/x-api/getting-started/pricing): every live call is billable. Official reference pages do not state per-endpoint plan restrictions; Composio descriptions claim Enterprise-only access for some tools (recorded per tool, unverified).",
+    "Numeric bounds, id patterns and required fields follow the X spec where Composio descriptions differ.",
+    "Where Composio and X enums differ (see x_enum per parameter), input validation uses the official X enum.",
+    "Composio input `max_results` descriptions advertise automatic multi-page fetching; this server returns a single page and surfaces meta.next_token."
+  ],
+  "extra_tools": [
+    {
+      "name": "X_FINALIZE_MEDIA_UPLOAD",
+      "operationId": "finalizeMediaUpload",
+      "reason": "Completes the chunked upload lifecycle that Composio exposes only partially; not counted as Composio coverage."
+    },
+    {
+      "name": "X_AUTH_CONNECT",
+      "operationId": null,
+      "reason": "Starts OAuth 2.0 Authorization Code with PKCE (S256) for an X account; returns the authorize URL only."
+    },
+    {
+      "name": "X_AUTH_STATUS",
+      "operationId": null,
+      "reason": "Lists connected accounts, granted scopes and expiry without exposing tokens."
+    },
+    {
+      "name": "X_AUTH_DISCONNECT",
+      "operationId": null,
+      "reason": "Revokes (POST /2/oauth2/revoke) and deletes the active connected account."
+    }
+  ],
+  "oauth": {
+    "oauth2_user_capable": 77,
+    "app_only": [
+      "TWITTER_CREATE_COMPLIANCE_JOB",
+      "TWITTER_GET_COMPLIANCE_JOB",
+      "TWITTER_GET_COMPLIANCE_JOBS",
+      "TWITTER_GET_POST_USAGE",
+      "TWITTER_SEARCH_FULL_ARCHIVE_COUNTS",
+      "TWITTER_STREAM_POST_LABELS"
+    ],
+    "unauthenticated": [
+      "TWITTER_GET_OPENAPI_SPEC"
+    ],
+    "oauth1_user_only": [],
+    "note": "Every user-context tool accepts OAuth 2.0 user tokens, so no 3-legged OAuth 1.0a authorization flow is required; OAuth 1.0a remains available via environment credentials. App-only tools require X_BEARER_TOKEN and never receive user tokens."
+  },
+  "tools": [
+    {
+      "name": "TWITTER_ADD_LIST_MEMBER",
+      "title": "Add a list member",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "addListsMember",
+          "method": "POST",
+          "path": "/2/lists/{id}/members",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "user_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "user_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Adds a user to a specified Twitter List; the list must be owned by the authenticated user."
+    },
+    {
+      "name": "TWITTER_ADD_POST_TO_BOOKMARKS",
+      "title": "Add post to bookmarks",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createUsersBookmark",
+          "method": "POST",
+          "path": "/2/users/{id}/bookmarks",
+          "auth": [
+            "oauth2_user"
+          ],
+          "oauth2_scopes": [
+            "bookmark.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "X also accepts folder_id/tweet_ids; not exposed because the Composio baseline does not include them."
+      ],
+      "composio_description": "Adds a specified, existing, and accessible Tweet to a user's bookmarks, with success indicated by the 'bookmarked' field in the response."
+    },
+    {
+      "name": "TWITTER_APPEND_MEDIA_UPLOAD",
+      "title": "Append Media Upload",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "appendMediaUpload",
+          "method": "POST",
+          "path": "/2/media/upload/{id}/append",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "180,000/24hrs",
+            "per_user": "1,875/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "media",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "media"
+        },
+        {
+          "composio": "segment_index",
+          "type": "integer",
+          "required": true,
+          "in": "body",
+          "x": "segment_index"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "See INITIALIZE_MEDIA_UPLOAD note about the missing FINALIZE tool."
+      ],
+      "composio_description": "Append data chunk to an ongoing media upload session on X/Twitter. Use this action during chunked media uploads to append each segment of media data in sequence."
+    },
+    {
+      "name": "TWITTER_BOOKMARKS_BY_USER",
+      "title": "Get bookmarks by user",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersBookmarks",
+          "method": "GET",
+          "path": "/2/users/{id}/bookmarks",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "bookmark.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "180/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        },
+        {
+          "composio": "composio_execution_message",
+          "type": "string",
+          "required": false,
+          "in": "ignored",
+          "x": null,
+          "note": "Composio-internal field; accepted for drop-in compatibility, never forwarded to X."
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted (one extra billable request, cached per process)."
+      ],
+      "composio_description": "Retrieves Tweets bookmarked by the authenticated user, where the provided User ID must match the authenticated user's ID."
+    },
+    {
+      "name": "TWITTER_CREATE_ACTIVITY_SUBSCRIPTION",
+      "title": "Create activity subscription",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createActivitySubscription",
+          "method": "POST",
+          "path": "/2/activity/subscriptions",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "500/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "tag",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "tag"
+        },
+        {
+          "composio": "filter",
+          "type": "object",
+          "required": true,
+          "in": "body",
+          "x": "filter"
+        },
+        {
+          "composio": "event_type",
+          "type": "string",
+          "required": true,
+          "composio_enum": [
+            "profile.update.bio",
+            "profile.update.profile_picture",
+            "profile.update.banner_picture",
+            "profile.update.screenname",
+            "profile.update.geo",
+            "profile.update.url",
+            "profile.update.verified_badge",
+            "profile.update.affiliate_badge",
+            "profile.update.handle",
+            "news.new",
+            "follow.follow",
+            "follow.unfollow",
+            "spaces.start",
+            "spaces.end",
+            "chat.received",
+            "chat.sent"
+          ],
+          "in": "body",
+          "x": "event_type",
+          "x_enum": [
+            "profile.update.bio",
+            "profile.update.profile_picture",
+            "profile.update.banner_picture",
+            "profile.update.screenname",
+            "profile.update.geo",
+            "profile.update.url",
+            "profile.update.verified_badge",
+            "profile.update.affiliate_badge",
+            "profile.update.handle",
+            "news.new",
+            "follow.follow",
+            "follow.unfollow",
+            "subscriptions.subscribe",
+            "subscriptions.unsubscribe",
+            "spaces.start",
+            "spaces.end",
+            "broadcast.start",
+            "broadcast.end",
+            "broadcast.chat",
+            "broadcast.chat.remove",
+            "chat.received",
+            "chat.sent",
+            "chat.conversation.join",
+            "chat.conversation_join",
+            "chat.conversation.member_added",
+            "chat.conversation.member_removed",
+            "chat.conversation.admin_added",
+            "chat.conversation.admin_removed",
+            "chat.update.group_name",
+            "chat.update.restrictions",
+            "dm.sent",
+            "dm.received",
+            "dm.indicate_typing",
+            "dm.read",
+            "post.create",
+            "post.delete",
+            "post.mention.create",
+            "post.reply.create",
+            "post.quote.create",
+            "post.repost.create",
+            "like.create",
+            "mute.mute",
+            "mute.unmute",
+            "block.block",
+            "block.unblock"
+          ]
+        },
+        {
+          "composio": "webhook_id",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "webhook_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "X spec event_type enum is a superset of Composio's; the official X enum is used for validation. X `expires_at` is not exposed (outside Composio baseline)."
+      ],
+      "composio_description": "Tool to create a subscription for an X activity event. Use when you need to monitor specific user activities like profile updates, follows, or spaces events."
+    },
+    {
+      "name": "TWITTER_CREATE_COMPLIANCE_JOB",
+      "title": "Create compliance job",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createComplianceJobs",
+          "method": "POST",
+          "path": "/2/compliance/jobs",
+          "auth": [
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "150/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "name",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "name"
+        },
+        {
+          "composio": "type",
+          "type": "string",
+          "required": true,
+          "composio_enum": [
+            "tweets",
+            "users"
+          ],
+          "in": "body",
+          "x": "type"
+        },
+        {
+          "composio": "resumable",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "resumable"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Creates a new compliance job to check the status of Tweet or user IDs; upload IDs as a plain text file (one ID per line) to the `upload_url` received in the response."
+    },
+    {
+      "name": "TWITTER_CREATE_DM_CONVERSATION",
+      "title": "Create group DM conversation",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createDirectMessagesConversation",
+          "method": "POST",
+          "path": "/2/dm_conversations",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "1,440/24hrs",
+            "per_user": "15/15min, 1,440/24hrs"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "message",
+          "type": "object",
+          "required": true,
+          "in": "body",
+          "x": "message"
+        },
+        {
+          "composio": "participant_ids",
+          "type": "array",
+          "required": true,
+          "in": "body",
+          "x": "participant_ids"
+        },
+        {
+          "composio": "conversation_type",
+          "type": "string",
+          "required": true,
+          "composio_enum": [
+            "Group"
+          ],
+          "in": "body",
+          "x": "conversation_type"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Creates a new group Direct Message (DM) conversation on Twitter. REQUIRED PARAMETERS: - conversation_type: Must be 'Group' - participant_ids: List of Twitter user IDs to include in the conversation - message: JSON object with the initial message. Must contain 'text' field. To include media attachments, use message.attachments array with media_id (NOT media_url): {\"text\": \"...\", \"attachments\": [{\"media_id\": \"1234567890\"}]} Note: Media must be uploaded first using the upload_media action to obtain a media_id."
+    },
+    {
+      "name": "TWITTER_CREATE_LIST",
+      "title": "Create a list",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createLists",
+          "method": "POST",
+          "path": "/2/lists",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "name",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "name"
+        },
+        {
+          "composio": "private",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "private"
+        },
+        {
+          "composio": "description",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "description"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Creates a new, empty List on X (formerly Twitter), for which the provided name must be unique for the authenticated user; accounts are added separately."
+    },
+    {
+      "name": "TWITTER_CREATION_OF_A_POST",
+      "title": "Create a post",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createPosts",
+          "method": "POST",
+          "path": "/2/tweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "tweet.write",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "10,000/24hrs",
+            "per_user": "100/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "text",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "text"
+        },
+        {
+          "composio": "card_uri",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "card_uri"
+        },
+        {
+          "composio": "nullcast",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "nullcast"
+        },
+        {
+          "composio": "geo_place_id",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "geo.place_id",
+          "note": "Flattened Composio field mapped to nested X body."
+        },
+        {
+          "composio": "poll_options",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "poll.options",
+          "note": "Flattened Composio field mapped to nested X body."
+        },
+        {
+          "composio": "quote_tweet_id",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "quote_tweet_id"
+        },
+        {
+          "composio": "reply_settings",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "following",
+            "mentionedUsers",
+            "subscribers"
+          ],
+          "in": "body",
+          "x": "reply_settings",
+          "x_enum": [
+            "following",
+            "mentionedUsers",
+            "subscribers",
+            "verified"
+          ]
+        },
+        {
+          "composio": "media_media_ids",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "media.media_ids",
+          "note": "Flattened Composio field mapped to nested X body."
+        },
+        {
+          "composio": "poll_reply_settings",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "following",
+            "mentionedUsers",
+            "subscribers",
+            "verified"
+          ],
+          "in": "body",
+          "x": "poll.reply_settings",
+          "note": "X spec 2.174 states poll.reply_settings is accepted for compatibility but dropped before the mutation."
+        },
+        {
+          "composio": "media_tagged_user_ids",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "media.tagged_user_ids",
+          "note": "Flattened Composio field mapped to nested X body."
+        },
+        {
+          "composio": "poll_duration_minutes",
+          "type": "integer",
+          "required": false,
+          "in": "body",
+          "x": "poll.duration_minutes",
+          "note": "Flattened Composio field mapped to nested X body."
+        },
+        {
+          "composio": "direct_message_deep_link",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "direct_message_deep_link"
+        },
+        {
+          "composio": "for_super_followers_only",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "for_super_followers_only"
+        },
+        {
+          "composio": "reply_in_reply_to_tweet_id",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "reply.in_reply_to_tweet_id",
+          "note": "Flattened Composio field mapped to nested X body."
+        },
+        {
+          "composio": "reply_exclude_reply_user_ids",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "reply.exclude_reply_user_ids",
+          "note": "Flattened Composio field mapped to nested X body."
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "X body also has community_id, edit_options, made_with_ai, paid_partnership, share_with_followers; not exposed (outside Composio baseline).",
+        "Non-idempotent write: never retried automatically."
+      ],
+      "composio_description": "Creates a Tweet on Twitter; `text` is required unless `card_uri`, `media_media_ids`, `poll_options`, or `quote_tweet_id` is provided. Example - Creating a tweet with media and location: { \"text\": \"Check out our latest product update! 🚀\", \"media_media_ids\": [\"1455952740635586573\"], \"geo_place_id\": \"df51dec6f4ee2b2c\" } Example - Quote tweet with commentary: { \"text\": \"This is a game-changer for the industry! Here's why... 🧵\", \"quote_tweet_id\": \"1453828617121234945\" } Example - Reply to a tweet: { \"text\": \"Great point! Here's my take on this...\", \"reply_in_reply_to_tweet_id\": \"1453828617121234945\" }"
+    },
+    {
+      "name": "TWITTER_DELETE_DM",
+      "title": "Delete direct message",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "deleteDirectMessagesEvents",
+          "method": "DELETE",
+          "path": "/2/dm_events/{event_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "dm.write"
+          ],
+          "rate_limit": {
+            "per_app": "4,000/24hrs",
+            "per_user": "300/15min, 1,500/24hrs"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "event_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "event_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Permanently deletes a specific Twitter Direct Message (DM) event using its `event_id` if the authenticated user sent it; this action is irreversible and does not delete entire conversations."
+    },
+    {
+      "name": "TWITTER_DELETE_LIST",
+      "title": "Delete list",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "deleteLists",
+          "method": "DELETE",
+          "path": "/2/lists/{id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Permanently deletes a specified Twitter List using its ID, which must be owned by the authenticated user; this action is irreversible and the list must already exist."
+    },
+    {
+      "name": "TWITTER_FOLLOWERS_BY_USER_ID",
+      "title": "Get followers by user id",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersFollowers",
+          "method": "GET",
+          "path": "/2/users/{id}/followers",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "follows.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves a list of users who follow a specified public Twitter user ID."
+    },
+    {
+      "name": "TWITTER_FOLLOWING_BY_USER_ID",
+      "title": "Get following by user ID",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersFollowing",
+          "method": "GET",
+          "path": "/2/users/{id}/following",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "follows.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves users followed by a specific Twitter user, allowing pagination and customization of returned user and tweet data fields via expansions."
+    },
+    {
+      "name": "TWITTER_FOLLOW_LIST",
+      "title": "Follow a list",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "followList",
+          "method": "POST",
+          "path": "/2/users/{id}/followed_lists",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "list_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "list_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Allows the authenticated user (`id`) to follow a specific Twitter List (`list_id`) they are permitted to access, subscribing them to the list's timeline; this does not automatically follow individual list members."
+    },
+    {
+      "name": "TWITTER_FOLLOW_USER",
+      "title": "Follow a user",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "followUser",
+          "method": "POST",
+          "path": "/2/users/{id}/following",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "follows.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "target_user_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "target_user_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Allows an authenticated user (path `id`) to follow another user (`target_user_id`), which results in a pending request if the target user's tweets are protected."
+    },
+    {
+      "name": "TWITTER_FULL_ARCHIVE_SEARCH",
+      "title": "Search full archive of tweets",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "searchPostsAll",
+          "method": "GET",
+          "path": "/2/tweets/search/all",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "1/sec, 300/15min",
+            "per_user": "1/sec"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "query",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "query"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "next_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "next_token"
+        },
+        {
+          "composio": "sort_order",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "recency",
+            "relevancy"
+          ],
+          "in": "query",
+          "x": "sort_order"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": {
+        "request_param": "next_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [
+        "Composio auto-paginates; this server returns one page and validates X bounds (10-500, per docs.x.com rate-limit page)."
+      ],
+      "composio_description": "Searches the full archive of public Tweets from March 2006 onwards, with optional time bounds. Search queries are normalized, and parseable time bounds outside the supported range are adjusted."
+    },
+    {
+      "name": "TWITTER_GET_BLOCKED_USERS",
+      "title": "Get users blocked by user ID",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersBlocking",
+          "method": "GET",
+          "path": "/2/users/{id}/blocking",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "block.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves the authenticated user's own block list. IMPORTANT: You can only retrieve YOUR OWN block list - the `id` parameter must be the authenticated user's ID. Use the 'Get authenticated user' action first to obtain your user ID."
+    },
+    {
+      "name": "TWITTER_GET_COMPLIANCE_JOB",
+      "title": "Retrieve compliance job by id",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getComplianceJobsById",
+          "method": "GET",
+          "path": "/2/compliance/jobs/{id}",
+          "auth": [
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "150/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "compliance_job_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "compliance_job.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves status, download/upload URLs, and other details for an existing Twitter compliance job specified by its unique ID."
+    },
+    {
+      "name": "TWITTER_GET_COMPLIANCE_JOBS",
+      "title": "Retrieve compliance jobs",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getComplianceJobs",
+          "method": "GET",
+          "path": "/2/compliance/jobs",
+          "auth": [
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "150/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "type",
+          "type": "string",
+          "required": true,
+          "composio_enum": [
+            "tweets",
+            "users"
+          ],
+          "in": "query",
+          "x": "type"
+        },
+        {
+          "composio": "status",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "complete",
+            "created",
+            "expired",
+            "failed",
+            "in_progress"
+          ],
+          "in": "query",
+          "x": "status",
+          "x_enum": [
+            "created",
+            "in_progress",
+            "failed",
+            "complete"
+          ]
+        },
+        {
+          "composio": "compliance_job_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "compliance_job.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Composio status enum includes `expired`, which is absent from the X spec enum; it is rejected locally."
+      ],
+      "composio_description": "Returns a list of recent compliance jobs, filtered by type (tweets or users) and optionally by status."
+    },
+    {
+      "name": "TWITTER_GET_DM_CONVERSATION_EVENTS",
+      "title": "Get DM events for a DM conversation",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getDirectMessagesEventsByParticipantId",
+          "method": "GET",
+          "path": "/2/dm_conversations/with/{participant_id}/dm_events",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "event_types",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "event_types"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "participant_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "participant_id"
+        },
+        {
+          "composio": "dm_event_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "dm_event.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Fetches Direct Message (DM) events for a one-on-one conversation with a specified participant ID, ordered chronologically newest to oldest; does not support group DMs."
+    },
+    {
+      "name": "TWITTER_GET_DM_EVENT",
+      "title": "Get DM events by ID",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getDirectMessagesEventsById",
+          "method": "GET",
+          "path": "/2/dm_events/{event_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "event_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "event_id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "dm_event_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "dm_event.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Fetches a specific Direct Message event by ID, with optional related-data expansions. The response model retains expanded tweets but not expanded users."
+    },
+    {
+      "name": "TWITTER_GET_LIST",
+      "title": "Lookup list by ID",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getListsById",
+          "method": "GET",
+          "path": "/2/lists/{id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "list_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "list.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Returns metadata for a specific Twitter List, identified by its ID; does not return list members but can expand the owner's User object via the `expansions` parameter."
+    },
+    {
+      "name": "TWITTER_GET_LIST_FOLLOWERS",
+      "title": "Get list followers",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getListsFollowers",
+          "method": "GET",
+          "path": "/2/lists/{id}/followers",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": null
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Fetches a list of users who follow a specific Twitter List, identified by its ID; ensure the authenticated user has access if the list is private."
+    },
+    {
+      "name": "TWITTER_GET_LIST_MEMBERS",
+      "title": "Fetch list members by id",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getListsMembers",
+          "method": "GET",
+          "path": "/2/lists/{id}/members",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "900/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Fetches members of a specific Twitter List, identified by its unique ID."
+    },
+    {
+      "name": "TWITTER_GET_MEDIA_UPLOAD_STATUS",
+      "title": "Get Media Upload Status",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getMediaUploadStatus",
+          "method": "GET",
+          "path": "/2/media/upload",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "100,000/24hrs",
+            "per_user": "1,000/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "media_id",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "media_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Sends command=STATUS."
+      ],
+      "composio_description": "Get the processing status of uploaded media (videos/GIFs) on X/Twitter. Only call this when the FINALIZE command returned a processing_info field. Poll every 3–5 seconds with a 60–120 second maximum timeout to avoid HTTP 429 errors. Response state cycles through 'pending', 'in_progress', 'succeeded', and 'failed'. Only attach media_id to a tweet when state is 'succeeded'. State 'failed' is terminal — requires a completely new upload via TWITTER_UPLOAD_MEDIA or TWITTER_UPLOAD_LARGE_MEDIA. Video/GIF processing takes 30–120 seconds; posting before 'succeeded' results in non-playable media."
+    },
+    {
+      "name": "TWITTER_GET_MUTED_USERS",
+      "title": "Get muted users",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersMuting",
+          "method": "GET",
+          "path": "/2/users/{id}/muting",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "mute.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Returns user objects muted by the X user identified by the `id` path parameter."
+    },
+    {
+      "name": "TWITTER_GET_OPENAPI_SPEC",
+      "title": "Fetch OpenAPI specification",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getOpenApiSpec",
+          "method": "GET",
+          "path": "/2/openapi.json",
+          "auth": [],
+          "oauth2_scopes": [],
+          "rate_limit": null
+        }
+      ],
+      "request_body": null,
+      "params": [],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Unauthenticated; returns a large (~1.3 MB) document."
+      ],
+      "composio_description": "Fetches the OpenAPI specification (JSON) for Twitter's API v2, used to programmatically understand the API's structure for developing client libraries or tools.\n\n#### Output\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `data` | string | Yes | Data from the action execution |\n| `error` | string | No | Error if any occurred during the execution of the action |\n| `successful` | boolean | Yes | Whether or not the action execution was successful or not |"
+    },
+    {
+      "name": "TWITTER_GET_POST_ANALYTICS",
+      "title": "Get Post analytics",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsAnalytics",
+          "method": "GET",
+          "path": "/2/tweets/analytics",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "ids",
+          "type": "array",
+          "required": true,
+          "in": "query",
+          "x": "ids"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "granularity",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "hourly",
+            "daily",
+            "weekly",
+            "total"
+          ],
+          "in": "query",
+          "x": "granularity"
+        },
+        {
+          "composio": "analytics.fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "analytics.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Composio states an Enterprise plan is required (403 otherwise). docs.x.com reference does not state a plan restriction; unverified live."
+      ],
+      "composio_description": "Tool to retrieve analytics data for specified Posts within a defined time range. Use when you need engagement metrics, impressions, or other analytics for one or more Posts. Requires OAuth 2.0 with tweet.read and users.read scopes. Requires an X Enterprise API plan. Accounts on Free, Basic, Pro, or Pay-Per-Use tiers will receive a 403 Forbidden on every call, regardless of scopes or request correctness - this is not something a connected account's OAuth grant can unlock."
+    },
+    {
+      "name": "TWITTER_GET_POST_RETWEETERS_ACTION",
+      "title": "Get post retweeters",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsRepostedBy",
+          "method": "GET",
+          "path": "/2/tweets/{id}/retweeted_by",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves users who publicly retweeted a specified public Post ID, excluding Quote Tweets and retweets from private accounts."
+    },
+    {
+      "name": "TWITTER_GET_POST_RETWEETS",
+      "title": "Retrieve retweets of a post",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsReposts",
+          "method": "GET",
+          "path": "/2/tweets/{id}/retweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves Tweets that Retweeted a specified public or authenticated-user-accessible Tweet ID, optionally customizing the response with fields and expansions."
+    },
+    {
+      "name": "TWITTER_GET_POST_USAGE",
+      "title": "Fetch tweet usage data",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsage",
+          "method": "GET",
+          "path": "/2/usage/tweets",
+          "auth": [
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "50/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "days",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "days"
+        },
+        {
+          "composio": "usage_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "usage.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "App-only bearer token required."
+      ],
+      "composio_description": "Fetches Tweet usage statistics for a Project (e.g., consumption, caps, daily breakdowns for Project & Client Apps) to monitor API limits; data can be retrieved for 1 to 90 days."
+    },
+    {
+      "name": "TWITTER_GET_RECENT_DM_EVENTS",
+      "title": "Get recent direct message events",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getDirectMessagesEvents",
+          "method": "GET",
+          "path": "/2/dm_events",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "event_types",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "event_types"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "dm_event_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "dm_event.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Returns recent Direct Message events for the authenticated user, such as new messages or changes in conversation participants."
+    },
+    {
+      "name": "TWITTER_GET_SPACES_BY_CREATORS",
+      "title": "Get spaces by creator IDs",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getSpacesByCreatorIds",
+          "method": "GET",
+          "path": "/2/spaces/by/creator_ids",
+          "auth": [
+            "oauth2_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "space.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min, 1/sec",
+            "per_user": "300/15min, 1/sec"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "user_ids",
+          "type": "array",
+          "required": true,
+          "in": "query",
+          "x": "user_ids"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "space_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "space.fields"
+        },
+        {
+          "composio": "topic_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "topic.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves Twitter Spaces created by a list of specified User IDs, with options to customize returned data fields."
+    },
+    {
+      "name": "TWITTER_GET_SPACES_BY_IDS",
+      "title": "Get space information by IDs",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getSpacesByIds",
+          "method": "GET",
+          "path": "/2/spaces",
+          "auth": [
+            "oauth2_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "space.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "ids",
+          "type": "array",
+          "required": true,
+          "in": "query",
+          "x": "ids"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "space_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "space.fields"
+        },
+        {
+          "composio": "topic_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "topic.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Fetches detailed information for one or more Twitter Spaces (live, scheduled, or ended) by their unique IDs; at least one Space ID must be provided."
+    },
+    {
+      "name": "TWITTER_GET_SPACE_BY_ID",
+      "title": "Look up space by ID",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getSpacesById",
+          "method": "GET",
+          "path": "/2/spaces/{id}",
+          "auth": [
+            "oauth2_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "space.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "space_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "space.fields"
+        },
+        {
+          "composio": "topic_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "topic.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves details for a Twitter Space by its ID, allowing for customization and expansion of related data, provided the Space ID is valid and accessible."
+    },
+    {
+      "name": "TWITTER_GET_SPACE_POSTS",
+      "title": "Retrieve posts from a space",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getSpacesPosts",
+          "method": "GET",
+          "path": "/2/spaces/{id}/tweets",
+          "auth": [
+            "oauth2_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "space.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": true,
+      "notes": [
+        "X supports pagination_token on this endpoint but the Composio baseline does not expose it; not exposed."
+      ],
+      "composio_description": "Retrieves Tweets that were shared/posted during a Twitter Space broadcast. IMPORTANT: This endpoint returns Tweets that participants explicitly shared during the Space session, NOT audio transcripts, comments, or reactions. Most Spaces have zero associated Tweets, so empty results (result_count=0) are normal and expected. Twitter Spaces are primarily audio conversations - this endpoint only returns text Tweets that were shared alongside the audio."
+    },
+    {
+      "name": "TWITTER_GET_SPACE_TICKET_BUYERS",
+      "title": "Fetch space ticket buyers list",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getSpacesBuyers",
+          "method": "GET",
+          "path": "/2/spaces/{id}/buyers",
+          "auth": [
+            "oauth2_user"
+          ],
+          "oauth2_scopes": [
+            "space.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves a list of users who purchased tickets for a specific, valid, and ticketed Twitter Space."
+    },
+    {
+      "name": "TWITTER_GET_USERS_BY_IDS",
+      "title": "Look up users by IDs",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersByIds",
+          "method": "GET",
+          "path": "/2/users",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "ids",
+          "type": "array",
+          "required": true,
+          "in": "query",
+          "x": "ids"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves detailed information for specified X (formerly Twitter) user IDs, optionally customizing returned fields and expanding related entities."
+    },
+    {
+      "name": "TWITTER_GET_USER_BY_ID",
+      "title": "Look up user by ID",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersById",
+          "method": "GET",
+          "path": "/2/users/{id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves detailed public information for a Twitter user by their ID, optionally expanding related data (e.g., pinned tweets) and specifying particular user or tweet fields to return."
+    },
+    {
+      "name": "TWITTER_GET_USER_FOLLOWED_LISTS",
+      "title": "Get user's followed lists",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersFollowedLists",
+          "method": "GET",
+          "path": "/2/users/{id}/followed_lists",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": null
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "list_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "list.fields"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Returns metadata (not Tweets) for lists a specific Twitter user follows, optionally including expanded owner details."
+    },
+    {
+      "name": "TWITTER_GET_USER_LIST_MEMBERSHIPS",
+      "title": "Get a user's list memberships",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersListMemberships",
+          "method": "GET",
+          "path": "/2/users/{id}/list_memberships",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "list_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "list.fields"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves a page of Twitter Lists a specified user is a member of, including public Lists and private Lists the authenticated user is authorized to view. Use the returned pagination token to retrieve further pages."
+    },
+    {
+      "name": "TWITTER_GET_USER_MENTIONS",
+      "title": "Get user mentions",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersMentions",
+          "method": "GET",
+          "path": "/2/users/{id}/mentions",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "450/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves one page of posts that mention a selected X user."
+    },
+    {
+      "name": "TWITTER_GET_USER_OWNED_LISTS",
+      "title": "Get a user's owned lists",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersOwnedLists",
+          "method": "GET",
+          "path": "/2/users/{id}/owned_lists",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "15/15min",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "list_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "list.fields"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Call this action to retrieve Lists created (owned) by a specific Twitter user, not Lists they follow or are subscribed to."
+    },
+    {
+      "name": "TWITTER_GET_USER_PINNED_LISTS",
+      "title": "Get a user's pinned lists",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersPinnedLists",
+          "method": "GET",
+          "path": "/2/users/{id}/pinned_lists",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "15/15min",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "list_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "list.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves the Lists a specific, existing Twitter user has pinned to their profile to highlight them."
+    },
+    {
+      "name": "TWITTER_GET_USER_POSTS",
+      "title": "Get user posts",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersPosts",
+          "method": "GET",
+          "path": "/2/users/{id}/tweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "10,000/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "exclude",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "exclude"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves posts authored by a selected X user."
+    },
+    {
+      "name": "TWITTER_GET_USER_PUBLIC_KEYS",
+      "title": "Get user public keys",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersPublicKey",
+          "method": "GET",
+          "path": "/2/users/{id}/public_keys",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": null
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "public_key_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "public_key.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "X also exposes batch GET /2/users/public_keys; Composio requires a single id so /2/users/{id}/public_keys is used."
+      ],
+      "composio_description": "Returns an X user's registered public keys for X Chat encryption."
+    },
+    {
+      "name": "TWITTER_HIDE_REPLIES",
+      "title": "Set reply visibility",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "hidePostsReply",
+          "method": "PUT",
+          "path": "/2/tweets/{tweet_id}/hidden",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.moderate.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "hidden",
+          "type": "boolean",
+          "required": true,
+          "in": "body",
+          "x": "hidden"
+        },
+        {
+          "composio": "tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Hides or unhides an existing reply Tweet. This action allows the authenticated user to hide or unhide a reply to a conversation they own (started). You can only hide replies to posts you authored. Note: Requires the tweet.moderate.write OAuth scope."
+    },
+    {
+      "name": "TWITTER_INITIALIZE_MEDIA_UPLOAD",
+      "title": "Initialize Media Upload",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "initializeMediaUpload",
+          "method": "POST",
+          "path": "/2/media/upload/initialize",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "180,000/24hrs",
+            "per_user": "1,875/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "shared",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "shared"
+        },
+        {
+          "composio": "media_type",
+          "type": "string",
+          "required": true,
+          "composio_enum": [
+            "video/mp4",
+            "video/webm",
+            "video/mp2t",
+            "video/quicktime",
+            "text/srt",
+            "text/vtt",
+            "image/jpeg",
+            "image/gif",
+            "image/bmp",
+            "image/png",
+            "image/webp",
+            "image/pjpeg",
+            "image/tiff",
+            "model/gltf-binary",
+            "model/vnd.usdz+zip"
+          ],
+          "in": "body",
+          "x": "media_type"
+        },
+        {
+          "composio": "total_bytes",
+          "type": "integer",
+          "required": true,
+          "in": "body",
+          "x": "total_bytes"
+        },
+        {
+          "composio": "media_category",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "amplify_video",
+            "tweet_gif",
+            "tweet_image",
+            "tweet_video",
+            "dm_gif",
+            "dm_image",
+            "dm_video",
+            "subtitles"
+          ],
+          "in": "body",
+          "x": "media_category"
+        },
+        {
+          "composio": "additional_owners",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "additional_owners"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Composio has no FINALIZE tool, so INITIALIZE/APPEND alone cannot complete an upload. This server adds extra tool X_FINALIZE_MEDIA_UPLOAD (finalizeMediaUpload); it is not counted toward Composio coverage."
+      ],
+      "composio_description": "Initialize a media upload session for X/Twitter. Use this to start a chunked media upload process, which returns a media_id for subsequent APPEND and FINALIZE commands. Required for uploading large files or when using the chunked upload workflow."
+    },
+    {
+      "name": "TWITTER_LIST_CHAT_CONVERSATIONS",
+      "title": "List chat conversations",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getChatConversations",
+          "method": "GET",
+          "path": "/2/chat/conversations",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "users.read"
+          ],
+          "rate_limit": null
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        },
+        {
+          "composio": "chat_conversation_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "chat_conversation.fields"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [
+        "max_results follows the X bound (1-1000) rather than Composio's 1-100.",
+        "X exposes extra filters (is_archived, is_muted, participant_ids, participant_query, start_time, end_time, type, unread_only); not exposed (outside Composio baseline)."
+      ],
+      "composio_description": "Lists one page of X Chat conversations in the authenticated user's inbox."
+    },
+    {
+      "name": "TWITTER_LIST_POSTS_TIMELINE_BY_LIST_ID",
+      "title": "List posts timeline by list ID",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getListsPosts",
+          "method": "GET",
+          "path": "/2/lists/{id}/tweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "list.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "900/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Fetches the most recent Tweets posted by members of a specified Twitter List."
+    },
+    {
+      "name": "TWITTER_LIST_POST_LIKERS",
+      "title": "List post likers",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsLikingUsers",
+          "method": "GET",
+          "path": "/2/tweets/{id}/liking_users",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "like.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves users who have liked the Post (Tweet) identified by the provided ID."
+    },
+    {
+      "name": "TWITTER_MUTE_USER",
+      "title": "Mute user by ID",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "muteUser",
+          "method": "POST",
+          "path": "/2/users/{id}/muting",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "mute.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "target_user_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "target_user_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Mutes a target user on behalf of an authenticated user, preventing the target's Tweets and Retweets from appearing in the authenticated user's home timeline without notifying the target."
+    },
+    {
+      "name": "TWITTER_PIN_LIST",
+      "title": "Pin a list",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "pinList",
+          "method": "POST",
+          "path": "/2/users/{id}/pinned_lists",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "list_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "list_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Pins a specified List to the authenticated user's profile, provided the List exists, the user has access rights, and the pin limit (typically 5 Lists) is not exceeded."
+    },
+    {
+      "name": "TWITTER_POST_DELETE_BY_POST_ID",
+      "title": "Delete tweet",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "deletePosts",
+          "method": "DELETE",
+          "path": "/2/tweets/{id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "tweet.write",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Irreversibly deletes a specific Tweet by its ID; the Tweet may persist in third-party caches after deletion."
+    },
+    {
+      "name": "TWITTER_POST_LOOKUP_BY_POST_ID",
+      "title": "Look up post by id",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsById",
+          "method": "GET",
+          "path": "/2/tweets/{id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "450/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Fetches comprehensive details for a single Tweet by its unique ID, provided the Tweet exists and is accessible."
+    },
+    {
+      "name": "TWITTER_POST_LOOKUP_BY_POST_IDS",
+      "title": "Get tweets by IDs",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsByIds",
+          "method": "GET",
+          "path": "/2/tweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "3,500/15min",
+            "per_user": "5,000/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "ids",
+          "type": "array",
+          "required": true,
+          "in": "query",
+          "x": "ids"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves detailed information for one or more Posts (Tweets) identified by their unique IDs, allowing selection of specific fields and expansions."
+    },
+    {
+      "name": "TWITTER_RECENT_SEARCH",
+      "title": "Search recent tweets",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "searchPostsRecent",
+          "method": "GET",
+          "path": "/2/tweets/search/recent",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "450/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "query",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "query"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "next_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "next_token"
+        },
+        {
+          "composio": "sort_order",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "recency",
+            "relevancy"
+          ],
+          "in": "query",
+          "x": "sort_order"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [
+        "Composio auto-paginates max_results up to 2000; this server returns one page and validates X bounds (10-100). Continue with meta.next_token."
+      ],
+      "composio_description": "Searches Tweets from the last seven days using X query syntax, with optional fields, expansions, sorting, and time or ID bounds. Timestamp and ID bounds cannot be combined in the same request. Requests for more than 100 results are automatically paginated up to 2,000; use the returned next token to continue when more results are available."
+    },
+    {
+      "name": "TWITTER_REMOVE_LIST_MEMBER",
+      "title": "Remove a list member",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "removeListsMemberByUserId",
+          "method": "DELETE",
+          "path": "/2/lists/{id}/members/{user_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "user_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "user_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Removes a user from a Twitter List; the response `is_member` field will be `false` if removal was successful or the user was not a member, and the updated list of members is not returned."
+    },
+    {
+      "name": "TWITTER_REMOVE_POST_FROM_BOOKMARKS",
+      "title": "Remove a bookmarked post",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "deleteUsersBookmark",
+          "method": "DELETE",
+          "path": "/2/users/{id}/bookmarks/{tweet_id}",
+          "auth": [
+            "oauth2_user"
+          ],
+          "oauth2_scopes": [
+            "bookmark.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Removes a Tweet, specified by `tweet_id`, from the authenticated user's bookmarks; the Tweet must have been previously bookmarked by the user for the action to have an effect."
+    },
+    {
+      "name": "TWITTER_RETRIEVE_DM_CONVERSATION_EVENTS",
+      "title": "Retrieve DM conversation events",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getDirectMessagesEventsByConversationId",
+          "method": "GET",
+          "path": "/2/dm_conversations/{id}/dm_events",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "15/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "event_types",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "event_types"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "dm_event_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "dm_event.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves Direct Message (DM) events for a specific conversation ID on Twitter, useful for analyzing messages and participant activities."
+    },
+    {
+      "name": "TWITTER_RETRIEVE_POSTS_THAT_QUOTE_A_POST",
+      "title": "Retrieve posts that quote a post",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsQuotedPosts",
+          "method": "GET",
+          "path": "/2/tweets/{id}/quote_tweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "exclude",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "exclude"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves Tweets that quote a specified Tweet, requiring a valid Tweet ID."
+    },
+    {
+      "name": "TWITTER_RETURNS_POST_OBJECTS_LIKED_BY_THE_PROVIDED_USER_ID",
+      "title": "Retrieve liked tweets by user ID",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersLikedPosts",
+          "method": "GET",
+          "path": "/2/users/{id}/liked_tweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "like.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "75/15min",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves Tweets liked by a specified Twitter user, provided their liked tweets are public or accessible."
+    },
+    {
+      "name": "TWITTER_RETWEET_POST",
+      "title": "Retweet post",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "repostPost",
+          "method": "POST",
+          "path": "/2/users/{id}/retweets",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "tweet.write",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "No user id parameter in Composio: path id resolved via GET /2/users/me."
+      ],
+      "composio_description": "Retweets a Tweet for the authenticated user. The user ID is automatically fetched from the authenticated session - you only need to provide the tweet_id to retweet."
+    },
+    {
+      "name": "TWITTER_SEARCH_FULL_ARCHIVE_COUNTS",
+      "title": "Get full archive search counts",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsCountsAll",
+          "method": "GET",
+          "path": "/2/tweets/counts/all",
+          "auth": [
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "query",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "query"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "next_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "next_token"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "granularity",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "day",
+            "hour",
+            "minute"
+          ],
+          "in": "query",
+          "x": "granularity"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        },
+        {
+          "composio": "search_count_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "search_count.fields"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Returns a count of Tweets from the full archive that match a specified query, aggregated by day, hour, or minute; `start_time` must be before `end_time` if both are provided, and `since_id`/`until_id` cannot be used with `start_time`/`end_time`."
+    },
+    {
+      "name": "TWITTER_SEARCH_NEWS",
+      "title": "Search X news",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "searchNews",
+          "method": "GET",
+          "path": "/2/news/search",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "200/15min",
+            "per_user": "200/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "query",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "query"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "news_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "news.fields"
+        },
+        {
+          "composio": "max_age_hours",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_age_hours"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Searches X for AI-generated news stories matching text."
+    },
+    {
+      "name": "TWITTER_SEARCH_RECENT_COUNTS",
+      "title": "Fetch recent tweet counts",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getPostsCountsRecent",
+          "method": "GET",
+          "path": "/2/tweets/counts/recent",
+          "auth": [
+            "oauth2_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "—"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "query",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "query"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "next_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "next_token"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "granularity",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "day",
+            "hour",
+            "minute"
+          ],
+          "in": "query",
+          "x": "granularity"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        },
+        {
+          "composio": "search_count_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "search_count.fields"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [],
+      "composio_description": "Retrieves the count of Tweets matching a specified search query within the last 7 days, aggregated by 'minute', 'hour', or 'day'."
+    },
+    {
+      "name": "TWITTER_SEARCH_SPACES",
+      "title": "Search for spaces",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "searchSpaces",
+          "method": "GET",
+          "path": "/2/spaces/search",
+          "auth": [
+            "oauth2_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "space.read",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "query",
+          "type": "string",
+          "required": true,
+          "in": "query",
+          "x": "query"
+        },
+        {
+          "composio": "state",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "all",
+            "live",
+            "scheduled"
+          ],
+          "in": "query",
+          "x": "state"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "space_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "space.fields"
+        },
+        {
+          "composio": "topic_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "topic.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Searches for Twitter Spaces by a textual query, optionally filtering by state (live, scheduled, all) to discover audio conversations."
+    },
+    {
+      "name": "TWITTER_SEND_A_NEW_MESSAGE_TO_A_USER",
+      "title": "Send a new message to a user",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createDirectMessagesByParticipantId",
+          "method": "POST",
+          "path": "/2/dm_conversations/with/{participant_id}/messages",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "1,440/24hrs",
+            "per_user": "15/15min, 1,440/24hrs"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "text",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "text"
+        },
+        {
+          "composio": "attachments",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "attachments"
+        },
+        {
+          "composio": "participant_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "participant_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Sends a new Direct Message with text and/or media (media_id for attachments must be pre-uploaded) to a specified Twitter user; this creates a new DM and does not modify existing messages."
+    },
+    {
+      "name": "TWITTER_SEND_DM_TO_CONVERSATION",
+      "title": "Send a new message to a DM conversation",
+      "scope": "direct-messages",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "createDirectMessagesByConversationId",
+          "method": "POST",
+          "path": "/2/dm_conversations/{dm_conversation_id}/messages",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "dm.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "1,440/24hrs",
+            "per_user": "15/15min, 1,440/24hrs"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "text",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "text"
+        },
+        {
+          "composio": "attachments",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "attachments"
+        },
+        {
+          "composio": "dm_conversation_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "dm_conversation_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Sends a message, with optional text and/or media attachments (using pre-uploaded `media_id`s), to a specified Twitter Direct Message conversation."
+    },
+    {
+      "name": "TWITTER_STREAM_POST_LABELS",
+      "title": "Get tweets label stream",
+      "scope": "platform",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "streamLabelsCompliance",
+          "method": "GET",
+          "path": "/2/tweets/label/stream",
+          "auth": [
+            "app_bearer"
+          ],
+          "oauth2_scopes": [],
+          "rate_limit": null
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "backfill_minutes",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "backfill_minutes"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Streaming endpoint: the tool reads a bounded window (max_events / timeout_seconds extensions) and then closes the connection. Composio states Enterprise access + app-only auth is required."
+      ],
+      "composio_description": "Stream real-time Tweet label events (apply/remove). Requires Enterprise access and App-Only OAuth 2.0 auth. Returns PublicTweetNotice or PublicTweetUnviewable events. 403 errors indicate missing Enterprise access or wrong auth type."
+    },
+    {
+      "name": "TWITTER_UNFOLLOW_LIST",
+      "title": "Unfollow a list",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "unfollowList",
+          "method": "DELETE",
+          "path": "/2/users/{id}/followed_lists/{list_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "list_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "list_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Enables a user (via `id`) to unfollow a specific Twitter List (via `list_id`), which removes its tweets from their timeline and stops related notifications; the action reports `following: false` on success, even if the user was not initially following the list."
+    },
+    {
+      "name": "TWITTER_UNFOLLOW_USER",
+      "title": "Unfollow user",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "unfollowUser",
+          "method": "DELETE",
+          "path": "/2/users/{source_user_id}/following/{target_user_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "follows.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "source_user_id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "source_user_id"
+        },
+        {
+          "composio": "target_user_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "target_user_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "`source_user_id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Allows the authenticated user to unfollow an existing Twitter user (`target_user_id`), which removes the follow relationship. The source user ID is automatically determined from the authenticated session."
+    },
+    {
+      "name": "TWITTER_UNLIKE_POST",
+      "title": "Unlike post",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "unlikePost",
+          "method": "DELETE",
+          "path": "/2/users/{id}/likes/{tweet_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "like.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min, 1,000/24hrs"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Allows an authenticated user (`id`) to remove their like from a specific post (`tweet_id`); the action is idempotent and completes successfully even if the post was not liked."
+    },
+    {
+      "name": "TWITTER_UNMUTE_USER",
+      "title": "Unmute a user by user ID",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "unmuteUser",
+          "method": "DELETE",
+          "path": "/2/users/{source_user_id}/muting/{target_user_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "mute.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "target_user_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "target_user_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "No source user parameter in Composio: source_user_id resolved via GET /2/users/me."
+      ],
+      "composio_description": "Unmutes a target user for the authenticated user, allowing them to see Tweets and notifications from the target user again. The source_user_id is automatically populated from the authenticated user's credentials."
+    },
+    {
+      "name": "TWITTER_UNPIN_LIST",
+      "title": "Unpin a list",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "unpinList",
+          "method": "DELETE",
+          "path": "/2/users/{id}/pinned_lists/{list_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "list_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "list_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Unpins a List (specified by list_id) from the authenticated user's profile. The user ID is automatically retrieved if not provided."
+    },
+    {
+      "name": "TWITTER_UNRETWEET_POST",
+      "title": "Unretweet post",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "unrepostPost",
+          "method": "DELETE",
+          "path": "/2/users/{id}/retweets/{source_tweet_id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "tweet.write",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "source_tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "source_tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Removes a user's retweet of a specified Post, if the user had previously retweeted it."
+    },
+    {
+      "name": "TWITTER_UPDATE_LIST",
+      "title": "Update list attributes",
+      "scope": "lists-bookmarks-relationships",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "updateLists",
+          "method": "PUT",
+          "path": "/2/lists/{id}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "list.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "300/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "name",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "name"
+        },
+        {
+          "composio": "private",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "private"
+        },
+        {
+          "composio": "description",
+          "type": "string",
+          "required": false,
+          "in": "body",
+          "x": "description"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Updates an existing Twitter List's name, description, or privacy status, requiring the List ID and at least one mutable property."
+    },
+    {
+      "name": "TWITTER_UPLOAD_LARGE_MEDIA",
+      "title": "Upload Large Media",
+      "scope": "spaces-media",
+      "kind": "composite",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "initializeMediaUpload",
+          "method": "POST",
+          "path": "/2/media/upload/initialize",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "180,000/24hrs",
+            "per_user": "1,875/15min"
+          }
+        },
+        {
+          "operationId": "appendMediaUpload",
+          "method": "POST",
+          "path": "/2/media/upload/{id}/append",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "180,000/24hrs",
+            "per_user": "1,875/15min"
+          }
+        },
+        {
+          "operationId": "finalizeMediaUpload",
+          "method": "POST",
+          "path": "/2/media/upload/{id}/finalize",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "180,000/24hrs",
+            "per_user": "1,875/15min"
+          }
+        },
+        {
+          "operationId": "getMediaUploadStatus",
+          "method": "GET",
+          "path": "/2/media/upload",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "100,000/24hrs",
+            "per_user": "1,000/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "media",
+          "type": "object",
+          "required": true,
+          "in": "composite",
+          "x": null,
+          "note": "Read locally, then INITIALIZE (media_type,total_bytes) -> APPEND chunks (base64, segment_index) -> FINALIZE -> poll STATUS."
+        },
+        {
+          "composio": "shared",
+          "type": "boolean",
+          "required": false,
+          "in": "body",
+          "x": "shared"
+        },
+        {
+          "composio": "media_category",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "tweet_image",
+            "tweet_gif",
+            "tweet_video",
+            "amplify_video"
+          ],
+          "in": "body",
+          "x": "media_category",
+          "x_enum": [
+            "amplify_video",
+            "tweet_gif",
+            "tweet_image",
+            "tweet_video",
+            "dm_gif",
+            "dm_image",
+            "dm_video",
+            "subtitles"
+          ]
+        },
+        {
+          "composio": "additional_owners",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "additional_owners"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Composite operation; no automatic retry of APPEND/FINALIZE."
+      ],
+      "composio_description": "Uploads a single media file to X/Twitter using simple or chunked upload based on its category and size. For chunked uploads, it polls pending processing and raises an error if processing fails or polling times out."
+    },
+    {
+      "name": "TWITTER_UPLOAD_MEDIA",
+      "title": "Upload Media",
+      "scope": "spaces-media",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "mediaUpload",
+          "method": "POST",
+          "path": "/2/media/upload",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "media.write"
+          ],
+          "rate_limit": {
+            "per_app": "50,000/24hrs",
+            "per_user": "500/15min"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "media",
+          "type": "object",
+          "required": true,
+          "in": "body",
+          "x": "media",
+          "note": "Composio file object replaced by {base64|path, mime_type, filename}; bytes are sent base64-encoded in a JSON body."
+        },
+        {
+          "composio": "shared",
+          "type": "boolean",
+          "required": false,
+          "in": "rejected",
+          "x": null,
+          "note": "X MediaUploadRequest (additionalProperties=false) has no `shared`; setting it returns a validation error pointing to TWITTER_UPLOAD_LARGE_MEDIA."
+        },
+        {
+          "composio": "media_type",
+          "type": "string",
+          "required": false,
+          "in": "local",
+          "x": null,
+          "note": "Not part of X MediaUploadRequest; used locally to infer media_category (image/* -> tweet_image, text/srt|text/vtt -> subtitles)."
+        },
+        {
+          "composio": "media_category",
+          "type": "string",
+          "required": false,
+          "composio_enum": [
+            "tweet_image",
+            "dm_image",
+            "subtitles"
+          ],
+          "in": "body",
+          "x": "media_category",
+          "x_enum": [
+            "tweet_image",
+            "tweet_video",
+            "tweet_gif",
+            "dm_image",
+            "dm_video",
+            "dm_gif",
+            "subtitles"
+          ]
+        },
+        {
+          "composio": "additional_owners",
+          "type": "array",
+          "required": false,
+          "in": "body",
+          "x": "additional_owners"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [
+        "Single-request upload capped at 5 MiB (Composio guidance); media_category inferred from MIME type when omitted."
+      ],
+      "composio_description": "Uploads one image or subtitle file under 5 MiB to X/Twitter using the v2 API, with tweet_image, dm_image, or subtitles categories. The returned media identifier expires; the response includes its expiry interval."
+    },
+    {
+      "name": "TWITTER_USER_HOME_TIMELINE_BY_USER_ID",
+      "title": "Get user reverse chronological timeline",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersTimeline",
+          "method": "GET",
+          "path": "/2/users/{id}/timelines/reverse_chronological",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "180/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": false,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "exclude",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "exclude"
+        },
+        {
+          "composio": "end_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "end_time"
+        },
+        {
+          "composio": "since_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "since_id"
+        },
+        {
+          "composio": "until_id",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "until_id"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "start_time",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "start_time"
+        },
+        {
+          "composio": "max_results",
+          "type": "integer",
+          "required": false,
+          "in": "query",
+          "x": "max_results"
+        },
+        {
+          "composio": "poll_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "poll.fields"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "media_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "media.fields"
+        },
+        {
+          "composio": "place_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "place.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        },
+        {
+          "composio": "pagination_token",
+          "type": "string",
+          "required": false,
+          "in": "query",
+          "x": "pagination_token"
+        }
+      ],
+      "pagination": {
+        "request_param": "pagination_token",
+        "response_field": "meta.next_token"
+      },
+      "x_supports_pagination": true,
+      "notes": [
+        "`id` optional: resolved via GET /2/users/me when omitted."
+      ],
+      "composio_description": "Retrieves the authenticated Twitter user's reverse chronological home timeline, including posts from followed accounts and the user's own posts. The user ID is fetched automatically when omitted; a supplied ID that differs from the authenticated user's ID is replaced with the authenticated ID."
+    },
+    {
+      "name": "TWITTER_USER_LIKE_POST",
+      "title": "Like a tweet",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": true,
+      "endpoints": [
+        {
+          "operationId": "likePost",
+          "method": "POST",
+          "path": "/2/users/{id}/likes",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "like.write",
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "50/15min, 1,000/24hrs"
+          }
+        }
+      ],
+      "request_body": "application/json",
+      "params": [
+        {
+          "composio": "id",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "id"
+        },
+        {
+          "composio": "tweet_id",
+          "type": "string",
+          "required": true,
+          "in": "body",
+          "x": "tweet_id"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Likes a specific, accessible Tweet for the authenticated user, provided neither user has blocked the other and the user is not restricted from liking. The request requires a user ID and Tweet ID; the authenticated user ID is fetched for the operation."
+    },
+    {
+      "name": "TWITTER_USER_LOOKUP_BY_USERNAME",
+      "title": "Look up user by username",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersByUsername",
+          "method": "GET",
+          "path": "/2/users/by/username/{username}",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "username",
+          "type": "string",
+          "required": true,
+          "in": "path",
+          "x": "username"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Fetches public profile information for a valid and existing Twitter user by their username, optionally expanding related data like pinned Tweets; results may be limited for protected profiles not followed by the authenticated user."
+    },
+    {
+      "name": "TWITTER_USER_LOOKUP_BY_USERNAMES",
+      "title": "Look up users by username",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersByUsernames",
+          "method": "GET",
+          "path": "/2/users/by",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user",
+            "app_bearer"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "300/15min",
+            "per_user": "900/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "usernames",
+          "type": "array",
+          "required": true,
+          "in": "query",
+          "x": "usernames"
+        },
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Retrieves detailed information for 1 to 100 Twitter users by their usernames (each 1-15 alphanumeric characters/underscores), allowing customizable user/tweet fields and expansion of related data like pinned tweets."
+    },
+    {
+      "name": "TWITTER_USER_LOOKUP_ME",
+      "title": "Get authenticated user",
+      "scope": "posts-users",
+      "kind": "http",
+      "mutation": false,
+      "endpoints": [
+        {
+          "operationId": "getUsersMe",
+          "method": "GET",
+          "path": "/2/users/me",
+          "auth": [
+            "oauth2_user",
+            "oauth1_user"
+          ],
+          "oauth2_scopes": [
+            "tweet.read",
+            "users.read"
+          ],
+          "rate_limit": {
+            "per_app": "—",
+            "per_user": "75/15min"
+          }
+        }
+      ],
+      "request_body": null,
+      "params": [
+        {
+          "composio": "expansions",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "expansions"
+        },
+        {
+          "composio": "user_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "user.fields"
+        },
+        {
+          "composio": "tweet_fields",
+          "type": "array",
+          "required": false,
+          "in": "query",
+          "x": "tweet.fields"
+        }
+      ],
+      "pagination": null,
+      "x_supports_pagination": false,
+      "notes": [],
+      "composio_description": "Returns profile information for the currently authenticated X user, customizable via request fields."
+    }
+  ]
+}
