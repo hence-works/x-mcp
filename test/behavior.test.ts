@@ -216,3 +216,37 @@ describe('lists, bookmarks and relationships', () => {
     }
   });
 });
+
+describe('direct messages', () => {
+  it('requires text or an attachment and validates conversation ids locally', async () => {
+    const h = await connectHarness(queued([]));
+    try {
+      const calls = [
+        { name: 'TWITTER_SEND_A_NEW_MESSAGE_TO_A_USER', arguments: { participant_id: '1' } },
+        { name: 'TWITTER_CREATE_DM_CONVERSATION', arguments: { conversation_type: 'Group', participant_ids: ['1', '2'], message: {} } },
+        { name: 'TWITTER_CREATE_DM_CONVERSATION', arguments: { conversation_type: 'Group', participant_ids: ['1'], message: { text: 'x' } } },
+        { name: 'TWITTER_CREATE_DM_CONVERSATION', arguments: { conversation_type: 'OneToOne', participant_ids: ['1', '2'], message: { text: 'x' } } },
+        { name: 'TWITTER_SEND_DM_TO_CONVERSATION', arguments: { dm_conversation_id: '../../2/tweets', text: 'x' } },
+        { name: 'TWITTER_SEND_A_NEW_MESSAGE_TO_A_USER', arguments: { participant_id: '1', text: 'x', attachments: [{ media_url: 'https://x' }] } },
+      ];
+      for (const call of calls) {
+        const result = await h.mcp.callTool(call);
+        expect(result.isError, JSON.stringify(call)).toBe(true);
+      }
+      expect(h.requests).toHaveLength(0);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('never retries a DM send after a server error', async () => {
+    const h = await connectHarness(queued([{ status: 503, body: { title: 'Service Unavailable' } }]));
+    try {
+      const result = await h.mcp.callTool({ name: 'TWITTER_SEND_A_NEW_MESSAGE_TO_A_USER', arguments: { participant_id: '1', text: 'x' } });
+      expect(result.structuredContent).toMatchObject({ error: { type: 'http_error', status: 503 } });
+      expect(h.requests).toHaveLength(1);
+    } finally {
+      await h.close();
+    }
+  });
+});
