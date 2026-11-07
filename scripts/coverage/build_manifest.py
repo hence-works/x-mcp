@@ -168,16 +168,19 @@ NOTES = {
     'STREAM_POST_LABELS': ['Streaming endpoint: the tool reads a bounded window (max_events / timeout_seconds extensions) and then closes the connection. Composio states Enterprise access + app-only auth is required.'],
     'GET_POST_ANALYTICS': ['Composio states an Enterprise plan is required (403 otherwise). docs.x.com reference does not state a plan restriction; unverified live.'],
     'GET_USER_PUBLIC_KEYS': ['X also exposes batch GET /2/users/public_keys; Composio requires a single id so /2/users/{id}/public_keys is used.'],
-    'LIST_CHAT_CONVERSATIONS': ['X exposes extra filters (is_archived, is_muted, participant_ids, participant_query, start_time, end_time, type, unread_only); not exposed (outside Composio baseline).'],
+    'LIST_CHAT_CONVERSATIONS': ['max_results follows the X bound (1-1000) rather than Composio\'s 1-100.', 'X exposes extra filters (is_archived, is_muted, participant_ids, participant_query, start_time, end_time, type, unread_only); not exposed (outside Composio baseline).'],
     'CREATE_ACTIVITY_SUBSCRIPTION': ['X spec event_type enum is a superset of Composio\'s; the official X enum is used for validation. X `expires_at` is not exposed (outside Composio baseline).'],
     'GET_OPENAPI_SPEC': ['Unauthenticated; returns a large (~1.3 MB) document.'],
     'GET_POST_USAGE': ['App-only bearer token required.'],
+    'GET_SPACE_POSTS': ['X supports pagination_token on this endpoint but the Composio baseline does not expose it; not exposed.'],
+    'UPLOAD_MEDIA': ['Single-request upload capped at 5 MiB (Composio guidance); media_category inferred from MIME type when omitted.'],
     'GET_COMPLIANCE_JOBS': ['Composio status enum includes `expired`, which is absent from the X spec enum; it is rejected locally.'],
 }
 
 GLOBAL_DISCREPANCIES = [
     'X OpenAPI 2.174 names the post field-selection parameter `post.fields` (PostFieldsParameter) on most endpoints, while docs.x.com/x-api/fundamentals/fields, inline stream parameters in the same spec, and Composio use `tweet.fields`. This server sends `tweet.fields` (documented wire name); unverified against the live API.',
     'X uses pay-per-usage pricing (docs.x.com/x-api/getting-started/pricing): every live call is billable. Official reference pages do not state per-endpoint plan restrictions; Composio descriptions claim Enterprise-only access for some tools (recorded per tool, unverified).',
+    'Numeric bounds, id patterns and required fields follow the X spec where Composio descriptions differ.',
     'Where Composio and X enums differ (see x_enum per parameter), input validation uses the official X enum.',
     'Composio input `max_results` descriptions advertise automatic multi-page fetching; this server returns a single page and surfaces meta.next_token.',
 ]
@@ -293,9 +296,11 @@ def main():
                 entry['x_enum'] = xs['enum']
             mapped.append(entry)
         pagination = None
-        if 'pagination_token' in qp or 'next_token' in qp:
-            pagination = {'request_param': 'pagination_token' if 'pagination_token' in qp else 'next_token',
-                          'response_field': 'meta.next_token'}
+        exposed = {p['name'] for p in t['params']}
+        x_paginates = 'pagination_token' in qp or 'next_token' in qp
+        token_params = [n for n in ('pagination_token', 'next_token') if n in qp and n in exposed]
+        if token_params:
+            pagination = {'request_param': token_params[0], 'response_field': 'meta.next_token'}
         tools.append({
             'name': t['slug'],
             'title': t['title'],
@@ -306,6 +311,7 @@ def main():
             'request_body': ct,
             'params': mapped,
             'pagination': pagination,
+            'x_supports_pagination': x_paginates,
             'notes': NOTES.get(key, []),
             'composio_description': t['description'],
         })

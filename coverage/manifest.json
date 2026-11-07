@@ -17,6 +17,7 @@
   "global_discrepancies": [
     "X OpenAPI 2.174 names the post field-selection parameter `post.fields` (PostFieldsParameter) on most endpoints, while docs.x.com/x-api/fundamentals/fields, inline stream parameters in the same spec, and Composio use `tweet.fields`. This server sends `tweet.fields` (documented wire name); unverified against the live API.",
     "X uses pay-per-usage pricing (docs.x.com/x-api/getting-started/pricing): every live call is billable. Official reference pages do not state per-endpoint plan restrictions; Composio descriptions claim Enterprise-only access for some tools (recorded per tool, unverified).",
+    "Numeric bounds, id patterns and required fields follow the X spec where Composio descriptions differ.",
     "Where Composio and X enums differ (see x_enum per parameter), input validation uses the official X enum.",
     "Composio input `max_results` descriptions advertise automatic multi-page fetching; this server returns a single page and surfaces meta.next_token."
   ],
@@ -72,6 +73,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Adds a user to a specified Twitter List; the list must be owned by the authenticated user."
     },
@@ -118,6 +120,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "X also accepts folder_id/tweet_ids; not exposed because the Composio baseline does not include them."
       ],
@@ -172,6 +175,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "See INITIALIZE_MEDIA_UPLOAD note about the missing FINALIZE tool."
       ],
@@ -281,6 +285,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted (one extra billable request, cached per process)."
       ],
@@ -406,6 +411,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "X spec event_type enum is a superset of Composio's; the official X enum is used for validation. X `expires_at` is not exposed (outside Composio baseline)."
       ],
@@ -461,6 +467,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Creates a new compliance job to check the status of Tweet or user IDs; upload IDs as a plain text file (one ID per line) to the `upload_url` received in the response."
     },
@@ -518,6 +525,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Creates a new group Direct Message (DM) conversation on Twitter. REQUIRED PARAMETERS: - conversation_type: Must be 'Group' - participant_ids: List of Twitter user IDs to include in the conversation - message: JSON object with the initial message. Must contain 'text' field. To include media attachments, use message.attachments array with media_id (NOT media_url): {\"text\": \"...\", \"attachments\": [{\"media_id\": \"1234567890\"}]} Note: Media must be uploaded first using the upload_media action to obtain a media_id."
     },
@@ -573,6 +581,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Creates a new, empty List on X (formerly Twitter), for which the provided name must be unique for the authenticated user; accounts are added separately."
     },
@@ -736,6 +745,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "X body also has community_id, edit_options, made_with_ai, paid_partnership, share_with_followers; not exposed (outside Composio baseline).",
         "Non-idempotent write: never retried automatically."
@@ -778,6 +788,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Permanently deletes a specific Twitter Direct Message (DM) event using its `event_id` if the authenticated user sent it; this action is irreversible and does not delete entire conversations."
     },
@@ -818,6 +829,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Permanently deletes a specified Twitter List using its ID, which must be owned by the authenticated user; this action is irreversible and the list must already exist."
     },
@@ -897,6 +909,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves a list of users who follow a specified public Twitter user ID."
     },
@@ -976,6 +989,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves users followed by a specific Twitter user, allowing pagination and customization of returned user and tweet data fields via expansions."
     },
@@ -1023,6 +1037,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Allows the authenticated user (`id`) to follow a specific Twitter List (`list_id`) they are permitted to access, subscribing them to the list's timeline; this does not automatically follow individual list members."
     },
@@ -1070,6 +1085,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -1207,9 +1223,10 @@
         }
       ],
       "pagination": {
-        "request_param": "pagination_token",
+        "request_param": "next_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [
         "Composio auto-paginates; this server returns one page and validates X bounds (10-500, per docs.x.com rate-limit page)."
       ],
@@ -1290,6 +1307,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves the authenticated user's own block list. IMPORTANT: You can only retrieve YOUR OWN block list - the `id` parameter must be the authenticated user's ID. Use the 'Get authenticated user' action first to obtain your user ID."
     },
@@ -1332,6 +1350,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves status, download/upload URLs, and other details for an existing Twitter compliance job specified by its unique ID."
     },
@@ -1398,6 +1417,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Composio status enum includes `expired`, which is absent from the X spec enum; it is rejected locally."
       ],
@@ -1499,6 +1519,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Fetches Direct Message (DM) events for a one-on-one conversation with a specified participant ID, ordered chronologically newest to oldest; does not support group DMs."
     },
@@ -1574,6 +1595,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Fetches a specific Direct Message event by ID, with optional related-data expansions. The response model retains expanded tweets but not expanded users."
     },
@@ -1636,6 +1658,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Returns metadata for a specific Twitter List, identified by its ID; does not return list members but can expand the owner's User object via the `expansions` parameter."
     },
@@ -1712,6 +1735,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Fetches a list of users who follow a specific Twitter List, identified by its ID; ensure the authenticated user has access if the list is private."
     },
@@ -1791,6 +1815,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Fetches members of a specific Twitter List, identified by its unique ID."
     },
@@ -1829,6 +1854,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Sends command=STATUS."
       ],
@@ -1909,6 +1935,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Returns user objects muted by the X user identified by the `id` path parameter."
     },
@@ -1931,6 +1958,7 @@
       "request_body": null,
       "params": [],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Unauthenticated; returns a large (~1.3 MB) document."
       ],
@@ -2006,6 +2034,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Composio states an Enterprise plan is required (403 otherwise). docs.x.com reference does not state a plan restriction; unverified live."
       ],
@@ -2086,6 +2115,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves users who publicly retweeted a specified public Post ID, excluding Quote Tweets and retweets from private accounts."
     },
@@ -2185,6 +2215,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves Tweets that Retweeted a specified public or authenticated-user-accessible Tweet ID, optionally customizing the response with fields and expansions."
     },
@@ -2227,6 +2258,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "App-only bearer token required."
       ],
@@ -2321,6 +2353,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Returns recent Direct Message events for the authenticated user, such as new messages or changes in conversation participants."
     },
@@ -2389,6 +2422,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves Twitter Spaces created by a list of specified User IDs, with options to customize returned data fields."
     },
@@ -2457,6 +2491,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Fetches detailed information for one or more Twitter Spaces (live, scheduled, or ended) by their unique IDs; at least one Space ID must be provided."
     },
@@ -2525,6 +2560,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves details for a Twitter Space by its ID, allowing for customization and expansion of related data, provided the Space ID is valid and accessible."
     },
@@ -2613,11 +2649,11 @@
           "x": "tweet.fields"
         }
       ],
-      "pagination": {
-        "request_param": "pagination_token",
-        "response_field": "meta.next_token"
-      },
-      "notes": [],
+      "pagination": null,
+      "x_supports_pagination": true,
+      "notes": [
+        "X supports pagination_token on this endpoint but the Composio baseline does not expose it; not exposed."
+      ],
       "composio_description": "Retrieves Tweets that were shared/posted during a Twitter Space broadcast. IMPORTANT: This endpoint returns Tweets that participants explicitly shared during the Space session, NOT audio transcripts, comments, or reactions. Most Spaces have zero associated Tweets, so empty results (result_count=0) are normal and expected. Twitter Spaces are primarily audio conversations - this endpoint only returns text Tweets that were shared alongside the audio."
     },
     {
@@ -2694,6 +2730,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves a list of users who purchased tickets for a specific, valid, and ticketed Twitter Space."
     },
@@ -2755,6 +2792,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves detailed information for specified X (formerly Twitter) user IDs, optionally customizing returned fields and expanding related entities."
     },
@@ -2816,6 +2854,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves detailed public information for a Twitter user by their ID, optionally expanding related data (e.g., pinned tweets) and specifying particular user or tweet fields to return."
     },
@@ -2892,6 +2931,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Returns metadata (not Tweets) for lists a specific Twitter user follows, optionally including expanded owner details."
     },
@@ -2971,6 +3011,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves a page of Twitter Lists a specified user is a member of, including public Lists and private Lists the authenticated user is authorized to view. Use the returned pagination token to retrieve further pages."
     },
@@ -3098,6 +3139,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves one page of posts that mention a selected X user."
     },
@@ -3177,6 +3219,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Call this action to retrieve Lists created (owned) by a specific Twitter user, not Lists they follow or are subscribed to."
     },
@@ -3238,6 +3281,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves the Lists a specific, existing Twitter user has pinned to their profile to highlight them."
     },
@@ -3372,6 +3416,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves posts authored by a selected X user."
     },
@@ -3416,6 +3461,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "X also exposes batch GET /2/users/public_keys; Composio requires a single id so /2/users/{id}/public_keys is used."
       ],
@@ -3465,6 +3511,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Hides or unhides an existing reply Tweet. This action allows the authenticated user to hide or unhide a reply to a conversation they own (started). You can only hide replies to posts you authored. Note: Requires the tweet.moderate.write OAuth scope."
     },
@@ -3558,6 +3605,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Composio has no FINALIZE tool, so INITIALIZE/APPEND alone cannot complete an upload. This server adds extra tool X_FINALIZE_MEDIA_UPLOAD (finalizeMediaUpload); it is not counted toward Composio coverage."
       ],
@@ -3627,7 +3675,9 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [
+        "max_results follows the X bound (1-1000) rather than Composio's 1-100.",
         "X exposes extra filters (is_archived, is_muted, participant_ids, participant_query, start_time, end_time, type, unread_only); not exposed (outside Composio baseline)."
       ],
       "composio_description": "Lists one page of X Chat conversations in the authenticated user's inbox."
@@ -3729,6 +3779,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Fetches the most recent Tweets posted by members of a specified Twitter List."
     },
@@ -3807,6 +3858,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves users who have liked the Post (Tweet) identified by the provided ID."
     },
@@ -3854,6 +3906,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -3903,6 +3956,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Pins a specified List to the authenticated user's profile, provided the List exists, the user has access rights, and the pin limit (typically 5 Lists) is not exceeded."
     },
@@ -3943,6 +3997,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Irreversibly deletes a specific Tweet by its ID; the Tweet may persist in third-party caches after deletion."
     },
@@ -4025,6 +4080,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Fetches comprehensive details for a single Tweet by its unique ID, provided the Tweet exists and is accessible."
     },
@@ -4107,6 +4163,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves detailed information for one or more Posts (Tweets) identified by their unique IDs, allowing selection of specific fields and expansions."
     },
@@ -4252,6 +4309,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [
         "Composio auto-paginates max_results up to 2000; this server returns one page and validates X bounds (10-100). Continue with meta.next_token."
       ],
@@ -4301,6 +4359,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Removes a user from a Twitter List; the response `is_member` field will be `false` if removal was successful or the user was not a member, and the updated list of members is not returned."
     },
@@ -4347,6 +4406,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -4448,6 +4508,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves Direct Message (DM) events for a specific conversation ID on Twitter, useful for analyzing messages and participant activities."
     },
@@ -4554,6 +4615,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves Tweets that quote a specified Tweet, requiring a valid Tweet ID."
     },
@@ -4653,6 +4715,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves Tweets liked by a specified Twitter user, provided their liked tweets are public or accessible."
     },
@@ -4693,6 +4756,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "No user id parameter in Composio: path id resolved via GET /2/users/me."
       ],
@@ -4794,6 +4858,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Returns a count of Tweets from the full archive that match a specified query, aggregated by day, hour, or minute; `start_time` must be before `end_time` if both are provided, and `since_id`/`until_id` cannot be used with `start_time`/`end_time`."
     },
@@ -4855,6 +4920,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Searches X for AI-generated news stories matching text."
     },
@@ -4955,6 +5021,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [],
       "composio_description": "Retrieves the count of Tweets matching a specified search query within the last 7 days, aggregated by 'minute', 'hour', or 'day'."
     },
@@ -5042,6 +5109,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Searches for Twitter Spaces by a textual query, optionally filtering by state (live, scheduled, all) to discover audio conversations."
     },
@@ -5096,6 +5164,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Sends a new Direct Message with text and/or media (media_id for attachments must be pre-uploaded) to a specified Twitter user; this creates a new DM and does not modify existing messages."
     },
@@ -5150,6 +5219,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Sends a message, with optional text and/or media attachments (using pre-uploaded `media_id`s), to a specified Twitter Direct Message conversation."
     },
@@ -5196,6 +5266,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Streaming endpoint: the tool reads a bounded window (max_events / timeout_seconds extensions) and then closes the connection. Composio states Enterprise access + app-only auth is required."
       ],
@@ -5245,6 +5316,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Enables a user (via `id`) to unfollow a specific Twitter List (via `list_id`), which removes its tweets from their timeline and stops related notifications; the action reports `following: false` on success, even if the user was not initially following the list."
     },
@@ -5292,6 +5364,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "`source_user_id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -5341,6 +5414,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Allows an authenticated user (`id`) to remove their like from a specific post (`tweet_id`); the action is idempotent and completes successfully even if the post was not liked."
     },
@@ -5381,6 +5455,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "No source user parameter in Composio: source_user_id resolved via GET /2/users/me."
       ],
@@ -5430,6 +5505,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -5479,6 +5555,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -5542,6 +5619,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Updates an existing Twitter List's name, description, or privacy status, requiring the List ID and at least one mutable property."
     },
@@ -5666,6 +5744,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [
         "Composite operation; no automatic retry of APPEND/FINALIZE."
       ],
@@ -5751,7 +5830,10 @@
         }
       ],
       "pagination": null,
-      "notes": [],
+      "x_supports_pagination": false,
+      "notes": [
+        "Single-request upload capped at 5 MiB (Composio guidance); media_category inferred from MIME type when omitted."
+      ],
       "composio_description": "Uploads one image or subtitle file under 5 MiB to X/Twitter using the v2 API, with tweet_image, dm_image, or subtitles categories. The returned media identifier expires; the response includes its expiry interval."
     },
     {
@@ -5884,6 +5966,7 @@
         "request_param": "pagination_token",
         "response_field": "meta.next_token"
       },
+      "x_supports_pagination": true,
       "notes": [
         "`id` optional: resolved via GET /2/users/me when omitted."
       ],
@@ -5933,6 +6016,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Likes a specific, accessible Tweet for the authenticated user, provided neither user has blocked the other and the user is not restricted from liking. The request requires a user ID and Tweet ID; the authenticated user ID is fetched for the operation."
     },
@@ -5994,6 +6078,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Fetches public profile information for a valid and existing Twitter user by their username, optionally expanding related data like pinned Tweets; results may be limited for protected profiles not followed by the authenticated user."
     },
@@ -6055,6 +6140,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Retrieves detailed information for 1 to 100 Twitter users by their usernames (each 1-15 alphanumeric characters/underscores), allowing customizable user/tweet fields and expansion of related data like pinned tweets."
     },
@@ -6108,6 +6194,7 @@
         }
       ],
       "pagination": null,
+      "x_supports_pagination": false,
       "notes": [],
       "composio_description": "Returns profile information for the currently authenticated X user, customizable via request fields."
     }

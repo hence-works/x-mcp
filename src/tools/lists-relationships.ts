@@ -237,7 +237,7 @@ export const bookmarkTools: ToolDefinition[] = [
   httpTool({
     name: 'TWITTER_BOOKMARKS_BY_USER',
     title: 'Get bookmarks',
-    description: "Returns the authenticated user's bookmarked posts (1-100 per page). OAuth 2.0 user token required; only your own bookmarks are readable.",
+    description: "Returns the authenticated user's bookmarked posts (1-100 per page). User context required; only your own bookmarks are readable.",
     scope,
     operationId: 'getUsersBookmarks',
     method: 'GET',
