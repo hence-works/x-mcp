@@ -16,7 +16,7 @@ clients and clients that use the 2025-era `initialize` handshake. Diagnostics go
 
 ## Requirements
 
-Node.js 20 or newer, and an X developer app with the credentials below. The X API uses
+Node.js 20.3 or newer, and an X developer app with the credentials below. The X API uses
 [pay-per-usage pricing](https://docs.x.com/x-api/getting-started/pricing): **every live call is billable**,
 including reads, and writes create real public content or messages.
 
@@ -101,8 +101,9 @@ space.read media.write offline.access` (the last only if you refresh tokens outs
   `unexpected_response`, `media_processing`, `internal_error`. Configured credential values are redacted from
   error payloads and diagnostics; tool arguments are never logged.
 - **Validation**: input schemas are strict (unknown keys are rejected) and use the X spec's id patterns, bounds and
-  enums. Cross-field rules (time bounds and id bounds together, poll or attachment combinations) are checked before
-  any request.
+  enums. Cross-field rules that the Composio baseline documents are checked before any request: incompatible post
+  attachments, incomplete polls, and combining time bounds with id bounds on recent search and full-archive counts.
+  The X spec states none of these rules, so they are enforced only where documented.
 - **Retries**: only GET requests are retried. Writes, including DM sends, posts and media APPEND/FINALIZE, are never
   retried; a network failure on a write says the outcome is unknown.
 - **Authenticated user id**: tools whose Composio schema makes the acting user id optional resolve it once per process

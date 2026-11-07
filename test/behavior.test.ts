@@ -53,7 +53,9 @@ describe('argument validation', () => {
       const cases = [
         { args: { query: 'x', start_time: '2026-11-01T00:00:00Z', since_id: '1' }, tool: 'TWITTER_RECENT_SEARCH', msg: /cannot be combined/ },
         { args: { text: 'x', poll_options: ['a', 'b'] }, tool: 'TWITTER_CREATION_OF_A_POST', msg: /provided together/ },
-        { args: { text: 'x', poll_options: ['a', 'b'], poll_duration_minutes: 10, quote_tweet_id: '1' }, tool: 'TWITTER_CREATION_OF_A_POST', msg: /Only one of/ },
+        { args: { text: 'x', poll_options: ['a', 'b'], poll_duration_minutes: 10, quote_tweet_id: '1' }, tool: 'TWITTER_CREATION_OF_A_POST', msg: /cannot be combined/ },
+        { args: { text: 'x', card_uri: 'card://1', media_media_ids: ['1'] }, tool: 'TWITTER_CREATION_OF_A_POST', msg: /card_uri cannot be combined with media/ },
+        { args: { query: 'x', end_time: '2026-11-01T00:00:00Z', until_id: '1' }, tool: 'TWITTER_SEARCH_FULL_ARCHIVE_COUNTS', msg: /cannot be combined/ },
         { args: {}, tool: 'TWITTER_CREATION_OF_A_POST', msg: /text is required/ },
         { args: { text: 'x', media_tagged_user_ids: ['1'] }, tool: 'TWITTER_CREATION_OF_A_POST', msg: /requires media_media_ids/ },
       ];

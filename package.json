@@ -12,7 +12,7 @@
     "build"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=20.3"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && chmod 755 build/index.js",

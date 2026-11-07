@@ -26,7 +26,10 @@ const excludeTypes = z
   .optional()
   .describe('Post types to exclude.');
 
-/** X rejects mixing timestamp bounds with id bounds on search/timeline endpoints. */
+/**
+ * Composio documents that time bounds and id bounds cannot be combined for recent search and
+ * full-archive counts (the X spec does not state it), so only those two tools enforce it.
+ */
 function checkExclusiveBounds(args: { start_time?: string; end_time?: string; since_id?: string; until_id?: string }) {
   const hasTime = args.start_time !== undefined || args.end_time !== undefined;
   const hasId = args.since_id !== undefined || args.until_id !== undefined;
@@ -111,11 +114,28 @@ export const postTools: ToolDefinition[] = [
       if (args.reply_exclude_reply_user_ids !== undefined && args.reply_in_reply_to_tweet_id === undefined) {
         throw invalidInput('reply_exclude_reply_user_ids requires reply_in_reply_to_tweet_id');
       }
-      const attachments = [hasPoll, args.media_media_ids !== undefined, args.quote_tweet_id !== undefined, args.card_uri !== undefined];
-      if (attachments.filter(Boolean).length > 1) {
-        throw invalidInput('Only one of poll, media, quote_tweet_id or card_uri can be attached to a post');
+      const present = {
+        card_uri: args.card_uri !== undefined,
+        poll: hasPoll,
+        media: args.media_media_ids !== undefined,
+        quote_tweet_id: args.quote_tweet_id !== undefined,
+        direct_message_deep_link: args.direct_message_deep_link !== undefined,
+      };
+      // Mutually exclusive pairs documented by the Composio baseline (the X spec states none).
+      const exclusive: [keyof typeof present, keyof typeof present][] = [
+        ['card_uri', 'quote_tweet_id'],
+        ['card_uri', 'poll'],
+        ['card_uri', 'media'],
+        ['card_uri', 'direct_message_deep_link'],
+        ['quote_tweet_id', 'poll'],
+        ['quote_tweet_id', 'direct_message_deep_link'],
+      ];
+      for (const [a, b] of exclusive) {
+        if (present[a] && present[b]) throw invalidInput(`${a} cannot be combined with ${b}`);
       }
-      if (!args.text && !attachments.some(Boolean)) throw invalidInput('text is required unless media, a poll, a quote or a card is attached');
+      if (!args.text && !(present.card_uri || present.poll || present.media || present.quote_tweet_id)) {
+        throw invalidInput('text is required unless media, a poll, a quote or a card is attached');
+      }
     },
   }),
   httpTool({
@@ -168,14 +188,13 @@ export const postTools: ToolDefinition[] = [
     name: 'TWITTER_FULL_ARCHIVE_SEARCH',
     title: 'Search the full post archive',
     description:
-      'Searches the complete post archive since 2006 with X query syntax. Returns one page (10-500 results); continue with pagination.next_token. Time bounds and id bounds cannot be combined.',
+      'Searches the complete post archive since 2006 with X query syntax. Returns one page (10-500 results); continue with pagination.next_token.',
     scope,
     operationId: 'searchPostsAll',
     method: 'GET',
     path: '/2/tweets/search/all',
     auth: ANY_AUTH,
     input: searchShape(500),
-    check: checkExclusiveBounds,
   }),
   httpTool({
     name: 'TWITTER_SEARCH_RECENT_COUNTS',
@@ -187,7 +206,6 @@ export const postTools: ToolDefinition[] = [
     path: '/2/tweets/counts/recent',
     auth: ['oauth2_user', 'app_bearer'],
     input: countsShape,
-    check: checkExclusiveBounds,
   }),
   httpTool({
     name: 'TWITTER_SEARCH_FULL_ARCHIVE_COUNTS',
@@ -218,7 +236,6 @@ export const postTools: ToolDefinition[] = [
       pagination_token: paginationToken,
       ...postExpansionFields,
     },
-    check: checkExclusiveBounds,
   }),
   httpTool({
     name: 'TWITTER_GET_USER_MENTIONS',
@@ -236,7 +253,6 @@ export const postTools: ToolDefinition[] = [
       pagination_token: paginationToken,
       ...postExpansionFields,
     },
-    check: checkExclusiveBounds,
   }),
   httpTool({
     name: 'TWITTER_USER_HOME_TIMELINE_BY_USER_ID',
@@ -256,7 +272,6 @@ export const postTools: ToolDefinition[] = [
       ...postExpansionFields,
     },
     meParams: ['id'],
-    check: checkExclusiveBounds,
   }),
   httpTool({
     name: 'TWITTER_RETRIEVE_POSTS_THAT_QUOTE_A_POST',

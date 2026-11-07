@@ -62,6 +62,24 @@ export const postsUsersCases: ContractCase[] = [
   },
   {
     tool: 'TWITTER_CREATION_OF_A_POST',
+    label: 'quote with media (allowed combination)',
+    args: { text: 'look', quote_tweet_id: '1409931481552543749', media_media_ids: ['1455952740635586573'] },
+    calls: [
+      {
+        method: 'POST',
+        path: '/2/tweets',
+        body: { text: 'look', quote_tweet_id: '1409931481552543749', media: { media_ids: ['1455952740635586573'] } },
+      },
+    ],
+  },
+  {
+    tool: 'TWITTER_GET_USER_POSTS',
+    label: 'time and id bounds together are passed through',
+    args: { id: '2244994945', start_time: '2026-11-01T00:00:00Z', since_id: '1' },
+    calls: [{ method: 'GET', path: '/2/users/2244994945/tweets', query: { start_time: '2026-11-01T00:00:00Z', since_id: '1' } }],
+  },
+  {
+    tool: 'TWITTER_CREATION_OF_A_POST',
     label: 'OAuth 1.0a only',
     env: {
       X_API_KEY: 'k', X_API_SECRET: 's', X_ACCESS_TOKEN: 't', X_ACCESS_TOKEN_SECRET: 'ts',
